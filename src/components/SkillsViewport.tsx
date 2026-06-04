@@ -1,5 +1,5 @@
-import { Float, Grid, PerspectiveCamera } from '@react-three/drei';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Float, Grid, OrbitControls, PerspectiveCamera } from '@react-three/drei';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react';
 import { motion, useReducedMotion } from 'motion/react';
 import { useRef } from 'react';
@@ -11,6 +11,10 @@ const tabs = [
   { id: 'design', label: 'DESIGN' },
 ] as const;
 
+const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
+const MODEL_POSITION: [number, number, number] = [0, -0.08, 0];
+const ORBIT_TARGET: [number, number, number] = MODEL_POSITION;
+
 function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
   const meshRef = useRef<Mesh>(null);
 
@@ -19,7 +23,7 @@ function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
 
     meshRef.current.rotation.y += delta * 0.42;
     meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
-    meshRef.current.position.y = 0.28 + Math.sin(state.clock.elapsedTime * 0.9) * 0.08;
+    meshRef.current.position.y = MODEL_POSITION[1] + Math.sin(state.clock.elapsedTime * 0.9) * 0.04;
   });
 
   return (
@@ -28,7 +32,7 @@ function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
       rotationIntensity={reduceMotion ? 0.15 : 0.45}
       speed={reduceMotion ? 0.4 : 1.2}
     >
-      <mesh ref={meshRef} castShadow position={[0, 0.25, 0]}>
+      <mesh ref={meshRef} castShadow position={MODEL_POSITION}>
         <torusKnotGeometry args={[0.58, 0.2, 220, 32, 2, 3]} />
         <meshPhysicalMaterial
           clearcoat={1}
@@ -44,19 +48,6 @@ function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
   );
 }
 
-function CameraRig({ reduceMotion }: { reduceMotion: boolean | null }) {
-  const { camera } = useThree();
-
-  useFrame((state) => {
-    camera.position.x = 0;
-    camera.position.z = 8.4;
-    camera.position.y = reduceMotion ? 2.45 : 2.45 + Math.sin(state.clock.elapsedTime * 0.18) * 0.04;
-    camera.lookAt(0, 0.15, -1.8);
-  });
-
-  return null;
-}
-
 function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
   return (
     <Canvas
@@ -65,8 +56,17 @@ function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
       gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
       shadows={false}
     >
-      <PerspectiveCamera fov={38} makeDefault position={[0, 2.45, 8.4]} />
-      <CameraRig reduceMotion={reduceMotion} />
+      <PerspectiveCamera fov={38} makeDefault position={CAMERA_POSITION} />
+      <OrbitControls
+        enableDamping
+        dampingFactor={0.08}
+        enablePan={false}
+        enableZoom={false}
+        maxPolarAngle={1.6}
+        minPolarAngle={1.05}
+        rotateSpeed={0.7}
+        target={ORBIT_TARGET}
+      />
       <ambientLight intensity={1.25} />
       <directionalLight color="#ffffff" intensity={1.55} position={[2, 4, 3]} />
       <pointLight color="#58b7ff" intensity={11} position={[-3, 1.5, 2.5]} />
@@ -142,9 +142,7 @@ export default function SkillsViewport() {
         </ShaderGradientCanvas>
       </div>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-[40.8%] h-px bg-white/72 shadow-[0_0_16px_rgba(255,255,255,0.34)]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.012)_22%,rgba(18,90,255,0.035)_58%,rgba(8,56,201,0.1)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(255,255,255,0.16),transparent_16%),linear-gradient(90deg,rgba(33,120,255,0.16)_0%,transparent_28%,transparent_72%,rgba(130,195,255,0.18)_100%)]" />
 
       <Scene3D reduceMotion={reduceMotion} />
 
