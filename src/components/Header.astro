@@ -20,8 +20,8 @@ const languages = [
       />
     </a>
 
-    <div class="flex items-center gap-3 sm:gap-4 lg:gap-5">
-      <nav class="flex items-center gap-2 sm:gap-3">
+    <div class="flex items-center gap-2 sm:gap-4 lg:gap-5">
+      <nav class="hidden items-center gap-2 md:flex md:gap-3">
         <a
           href="#sobre"
           class="rounded-full px-3 py-2 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
@@ -43,18 +43,50 @@ const languages = [
         </a>
       </nav>
 
-      <details class="group relative">
-        <summary class="flex list-none items-center gap-2 rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] px-3 py-2 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]">
+      <details data-mobile-nav class="group relative md:hidden">
+        <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]">
+          <span class="sr-only">Abrir menu</span>
+          <span class="flex flex-col gap-[0.22rem]">
+            <span class="block h-px w-4 bg-current"></span>
+            <span class="block h-px w-4 bg-current"></span>
+            <span class="block h-px w-4 bg-current"></span>
+          </span>
+        </summary>
+
+        <div class="absolute right-0 mt-3 flex w-[15rem] flex-col gap-2 rounded-3xl border border-[var(--line-mid)] bg-black/92 p-3 shadow-[var(--shadow-panel-lg)] backdrop-blur-xl">
+          <a
+            href="#sobre"
+            class="rounded-2xl px-4 py-3 text-[0.78rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
+          >
+            Sobre
+          </a>
+          <a
+            href="#projetos"
+            class="rounded-2xl px-4 py-3 text-[0.78rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
+          >
+            Projetos
+          </a>
+          <a
+            href="#contato"
+            class="rounded-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-4 py-3 text-center text-[0.78rem] font-semibold uppercase tracking-[0.14em] transition hover:opacity-90"
+            style="color: var(--page-bg);"
+          >
+            Entrar em contato
+          </a>
+        </div>
+      </details>
+
+      <details data-language-switcher class="group relative">
+        <summary class="flex h-11 min-w-[2.5rem] cursor-pointer list-none items-center justify-center gap-2 rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] px-3 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)] md:min-w-[3rem]">
           <span class="fi fi-br rounded-[0.15rem] text-base leading-none"></span>
           <span class="hidden sm:inline">PT-BR</span>
-          <span class="text-[0.8rem] transition group-open:rotate-180">▾</span>
         </summary>
 
         <div class="absolute right-0 mt-3 w-44 rounded-2xl border border-[var(--line-mid)] bg-black/88 p-2 shadow-[var(--shadow-panel)] backdrop-blur-xl">
           {languages.map((language) => (
             <button
               class:list={[
-                'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.76rem] uppercase tracking-[0.14em] text-[var(--text-primary)] transition',
+                'flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.76rem] uppercase tracking-[0.14em] text-[var(--text-primary)] transition',
                 language.active ? 'bg-[var(--surface-soft)]' : 'hover:bg-[var(--surface-softer)]',
               ]}
               type="button"
@@ -68,3 +100,31 @@ const languages = [
     </div>
   </div>
 </header>
+
+<script>
+  const bindDetailsDismiss = (selector) => {
+    const element = document.querySelector(selector);
+
+    if (!(element instanceof HTMLDetailsElement)) return;
+
+    const closeOnOutsideClick = (event) => {
+      const target = event.target;
+
+      if (!(target instanceof Node)) return;
+      if (element.contains(target)) return;
+
+      element.open = false;
+    };
+
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return;
+      element.open = false;
+    };
+
+    document.addEventListener('click', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+  };
+
+  bindDetailsDismiss('[data-language-switcher]');
+  bindDetailsDismiss('[data-mobile-nav]');
+</script>
