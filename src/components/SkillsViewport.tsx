@@ -1,9 +1,10 @@
 import { Float, Grid, OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react';
-import { Eye, X } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { Eye, Grip, MousePointer2, X } from 'lucide-react';
+import { useReducedMotion } from 'motion/react';
 import { useRef, useState } from 'react';
+import { CursorFollower } from './ui/cursor-follower';
 import type { Mesh } from 'three';
 
 const tabs = [
@@ -110,9 +111,13 @@ export default function SkillsViewport() {
   const activeTab = 'modelagem3d';
   const reduceMotion = useReducedMotion();
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   return (
-    <section className="relative h-full overflow-hidden rounded-[2.25rem] border border-[color:var(--line-soft)] bg-[var(--skill-blue)] shadow-[var(--shadow-skill)]">
+    <section
+      ref={sectionRef}
+      className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] border border-[color:var(--line-soft)] bg-[var(--skill-blue)] shadow-[var(--shadow-skill)]"
+    >
       <div className="absolute inset-0">
         <ShaderGradientCanvas
           className="h-full w-full"
@@ -170,6 +175,12 @@ export default function SkillsViewport() {
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.012)_22%,rgba(18,90,255,0.035)_58%,rgba(8,56,201,0.1)_100%)]" />
 
       <Scene3D reduceMotion={reduceMotion} />
+      <CursorFollower
+        containerRef={sectionRef}
+        defaultIcon={<Grip size={18} strokeWidth={2.1} />}
+        hoverIcon={<MousePointer2 size={16} strokeWidth={2.2} />}
+        interactiveSelector='button, [data-cursor-hover]'
+      />
 
       <div className="pointer-events-none absolute left-5 top-5 z-30 rounded-2xl md:left-8 md:top-8">
         <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-[var(--text-primary)]">
@@ -183,19 +194,19 @@ export default function SkillsViewport() {
             const isActive = tab.id === activeTab;
 
             return (
-              <motion.button
+              <button
+                data-cursor-hover
                 key={tab.id}
-                whileHover={{ x: isActive ? 0 : 3 }}
                 className={[
-                  'min-w-[8.8rem] rounded-full border px-4 py-1.5 text-center text-[0.68rem] tracking-[0.14em] transition',
+                  'min-w-[8.8rem] rounded-full border px-4 py-1.5 text-center text-[0.68rem] tracking-[0.14em] transition-colors cursor-none',
                   isActive
-                    ? 'border-(--text-primary) bg-(--text-primary) text-(--page-bg) font-bold'
-                    : 'border-(--text-primary) bg-transparent text-(--text-primary)',
+                    ? 'border-[var(--text-primary)] bg-[var(--text-primary)] font-bold text-[color:var(--page-bg)]'
+                    : 'border-[var(--text-primary)] bg-transparent text-[var(--text-primary)] hover:bg-[var(--surface-hover)]',
                 ].join(' ')}
                 type="button"
               >
                 {tab.label}
-              </motion.button>
+              </button>
             );
           })}
         </div>
