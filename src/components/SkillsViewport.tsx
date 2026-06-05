@@ -1,15 +1,27 @@
 import { Float, Grid, OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react';
+import { Eye, X } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { Mesh } from 'three';
 
 const tabs = [
-  { id: 'modelagem3d', label: 'MODELAGEM3D' },
+  { id: 'modelagem3d', label: 'MODELAGEM 3D' },
   { id: 'jogos', label: 'JOGOS' },
   { id: 'design', label: 'DESIGN' },
 ] as const;
+
+const SCENE_COLORS = {
+  directional: '#ffffff',
+  emissive: '#8cc8ff',
+  grid: '#d7e8ff',
+  mesh: '#ffffff',
+  point: '#006fff',
+  shaderBlue: '#006FFF',
+  shaderBlueSoft: '#0E70EB',
+  shaderBlueStrong: '#005eeb',
+} as const;
 
 const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
 const MODEL_POSITION: [number, number, number] = [0, -0.08, 0];
@@ -37,8 +49,8 @@ function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
         <meshPhysicalMaterial
           clearcoat={1}
           clearcoatRoughness={0.12}
-          color="#f7f8ff"
-          emissive="#8cc8ff"
+          color={SCENE_COLORS.mesh}
+          emissive={SCENE_COLORS.emissive}
           emissiveIntensity={0.32}
           metalness={0.22}
           roughness={0.1}
@@ -68,21 +80,21 @@ function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
         target={ORBIT_TARGET}
       />
       <ambientLight intensity={1.25} />
-      <directionalLight color="#ffffff" intensity={1.55} position={[2, 4, 3]} />
-      <pointLight color="#58b7ff" intensity={11} position={[-3, 1.5, 2.5]} />
-      <pointLight color="#0f6fff" intensity={8} position={[3, 0.8, 1.5]} />
+      <directionalLight color={SCENE_COLORS.directional} intensity={1.55} position={[2, 4, 3]} />
+      <pointLight color={SCENE_COLORS.emissive} intensity={11} position={[-3, 1.5, 2.5]} />
+      <pointLight color={SCENE_COLORS.point} intensity={8} position={[3, 0.8, 1.5]} />
 
       <group position={[0, -1.95, -10.5]}>
         <Grid
           args={[80, 44]}
-          cellColor="#d7e8ff"
+          cellColor={SCENE_COLORS.grid}
           cellSize={0.9}
           cellThickness={0.4}
           fadeDistance={78}
           fadeStrength={1.8}
           followCamera={false}
           infiniteGrid
-          sectionColor="#ffffff"
+          sectionColor={SCENE_COLORS.directional}
           sectionSize={4.5}
           sectionThickness={0.78}
           side={2}
@@ -97,9 +109,10 @@ function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
 export default function SkillsViewport() {
   const activeTab = 'modelagem3d';
   const reduceMotion = useReducedMotion();
+  const [detailsVisible, setDetailsVisible] = useState(false);
 
   return (
-    <section className="relative h-full overflow-hidden rounded-[2.25rem] border border-white/10 bg-[#1568ff] shadow-[0_32px_120px_rgba(0,57,173,0.45)]">
+    <section className="relative h-full overflow-hidden rounded-[2.25rem] border border-[color:var(--line-soft)] bg-[var(--skill-blue)] shadow-[var(--shadow-skill)]">
       <div className="absolute inset-0">
         <ShaderGradientCanvas
           className="h-full w-full"
@@ -110,16 +123,16 @@ export default function SkillsViewport() {
           <ShaderGradient
             animate={reduceMotion ? 'off' : 'on'}
             axesHelper="off"
-            bgColor1="#000000"
-            bgColor2="#000000"
+            bgColor1="var(--page-bg)"
+            bgColor2="var(--page-bg)"
             brightness={1.2}
             cAzimuthAngle={180}
             cDistance={3.6}
             cPolarAngle={90}
             cameraZoom={1}
-            color1="#006FFF"
-            color2="#014EEB"
-            color3="#0E70EB"
+            color1={SCENE_COLORS.shaderBlue}
+            color2={SCENE_COLORS.shaderBlueStrong}
+            color3={SCENE_COLORS.shaderBlueSoft}
             control="props"
             destination="onCanvas"
             embedMode="off"
@@ -153,16 +166,18 @@ export default function SkillsViewport() {
         </ShaderGradientCanvas>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 bg-white/[0.025] backdrop-blur-[22px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[var(--surface-blur)] backdrop-blur-[22px]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.012)_22%,rgba(18,90,255,0.035)_58%,rgba(8,56,201,0.1)_100%)]" />
 
       <Scene3D reduceMotion={reduceMotion} />
 
-      <div className="absolute left-6 top-6 z-30 flex flex-col gap-4 md:left-8 md:top-8">
-        <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-white">
+      <div className="pointer-events-none absolute left-5 top-5 z-30 rounded-2xl md:left-8 md:top-8">
+        <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-[var(--text-primary)]">
           MY SKILLS
         </p>
+      </div>
 
+      <div className="absolute right-5 top-5 z-30  p-4 md:right-8 md:top-8 md:p-5">
         <div className="flex flex-col gap-3">
           {tabs.map((tab) => {
             const isActive = tab.id === activeTab;
@@ -174,8 +189,8 @@ export default function SkillsViewport() {
                 className={[
                   'min-w-[8.8rem] rounded-full border px-4 py-1.5 text-center text-[0.68rem] tracking-[0.14em] transition',
                   isActive
-                    ? 'border-white bg-white text-[#0b0f17]'
-                    : 'border-white/70 bg-transparent text-white',
+                    ? 'border-(--text-primary) bg-(--text-primary) text-(--page-bg) font-bold'
+                    : 'border-(--text-primary) bg-transparent text-(--text-primary)',
                 ].join(' ')}
                 type="button"
               >
@@ -186,23 +201,45 @@ export default function SkillsViewport() {
         </div>
       </div>
 
-      <div className="relative z-20 flex h-full flex-col p-6 md:p-8">
-        <div className="mt-auto flex items-end justify-between gap-6">
-          <div className="max-w-sm">
-            <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/75">
+      {detailsVisible ? (
+        <div className="absolute bottom-5 left-5 z-30 max-w-[19rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
+          <div className="flex items-start justify-between gap-4">
+            <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--text-primary)]">
               Cena 3D ativa
             </p>
-            <p className="mt-2 text-sm leading-6 text-white/78">
-              O placeholder central sera substituido pelo seu modelo final. O foco
-              agora e estruturar viewport, grid, camera e fundo.
-            </p>
+            <button
+              aria-label="Esconder detalhes"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[var(--surface-softer)] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]"
+              onClick={() => setDetailsVisible(false)}
+              type="button"
+            >
+              <X size={15} strokeWidth={2.2} />
+            </button>
           </div>
 
-          <div className="text-right text-[0.68rem] uppercase tracking-[0.22em] text-white/72">
-            <p>Scene 01</p>
-            <p className="mt-2">Modelagem 3D</p>
-          </div>
+          <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]">
+            O placeholder central sera substituido pelo seu modelo final. O foco
+            agora e estruturar viewport, grid, camera e fundo.
+          </p>
         </div>
+      ) : (
+        <button
+          aria-label="Mostrar detalhes"
+          className="absolute bottom-5 left-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] text-[var(--text-primary)] shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:bg-[var(--surface-soft)] md:bottom-8 md:left-8"
+          onClick={() => setDetailsVisible(true)}
+          type="button"
+        >
+          <Eye size={18} strokeWidth={2.2} />
+        </button>
+      )}
+
+    
+
+      <div className="pointer-events-none absolute inset-0 rounded-[2.25rem] ring-1 ring-inset ring-[color:var(--line-soft)]">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--line-bright)] to-transparent" />
+        <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-[var(--line-mid)] to-transparent" />
+        <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-[var(--line-mid)] to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-mid)] to-transparent" />
       </div>
     </section>
   );
