@@ -116,7 +116,7 @@ export default function SkillsViewport() {
   return (
     <section
       ref={sectionRef}
-      className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] border border-[color:var(--line-soft)] bg-[var(--skill-blue)] shadow-[var(--shadow-skill)]"
+      className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--skill-blue)]"
     >
       <div className="absolute inset-0">
         <ShaderGradientCanvas
@@ -243,15 +243,7 @@ export default function SkillsViewport() {
           <Eye size={18} strokeWidth={2.2} />
         </button>
       )}
-
-    
-
-      <div className="pointer-events-none absolute inset-0 rounded-[2.25rem] ring-1 ring-inset ring-[color:var(--line-soft)]">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[var(--line-bright)] to-transparent" />
-        <div className="absolute inset-y-0 left-0 w-px bg-gradient-to-b from-transparent via-[var(--line-mid)] to-transparent" />
-        <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-[var(--line-mid)] to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[var(--line-mid)] to-transparent" />
-      </div>
+     
     </section>
   );
 }
