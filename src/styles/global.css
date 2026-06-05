@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "flag-icons/css/flag-icons.min.css";
 
 @font-face {
   font-family: "Clash Display";
@@ -23,6 +24,7 @@
   --line-mid: rgba(255, 255, 255, 0.16);
   --line-strong: rgba(255, 255, 255, 0.18);
   --line-bright: rgba(255, 255, 255, 0.35);
+  --header-height: 4.75rem;
   --skill-blue: #1568ff;
   --skill-blue-strong: #014eeb;
   --skill-blue-bright: #006fff;

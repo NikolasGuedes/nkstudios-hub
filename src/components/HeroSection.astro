@@ -1,16 +1,19 @@
 ---
+import Header from './Header.astro';
 import SkillsViewport from './SkillsViewport';
 ---
 
-<section class="relative isolate h-screen overflow-hidden bg-[var(--page-bg)] text-[var(--text-primary)]">
-  <div class="flex h-full flex-col px-3 pt-4 sm:px-4 lg:px-6">
-    <div class="mx-auto flex h-full w-full max-w-[112rem] flex-col">
-      <div class="h-[min(64vh,46rem)] shrink-0">
+<section id="top" class="relative isolate h-dvh overflow-hidden bg-[var(--page-bg)] text-[var(--text-primary)]">
+  <Header />
+
+  <div class="h-dvh overflow-hidden px-3 pb-3 pt-[calc(var(--header-height)+0.75rem)] sm:px-4 sm:pb-4 lg:px-6 lg:pb-5">
+    <div class="mx-auto flex h-[calc(100dvh-var(--header-height)-0.75rem)] w-full max-w-[112rem] flex-col overflow-hidden">
+      <div class="h-[min(55dvh,38rem)] shrink-0 md:h-[min(57dvh,40rem)]">
         <SkillsViewport client:only="react" />
       </div>
 
-      <div class="mt-2 flex min-h-0 flex-1 flex-col justify-end pb-4 sm:pb-5 lg:pb-6">
-        <div class="flex items-end justify-between gap-6 pb-4 text-[var(--text-primary)]">
+      <div class="mt-3 flex min-h-0 flex-1 flex-col">
+        <div class="flex items-end justify-between gap-6 pb-2 text-[var(--text-primary)]">
           <div class="text-[clamp(0.78rem,0.95vw,1rem)] uppercase leading-[1.45] tracking-[-0.03em] text-[var(--text-primary)]">
             <p>Brasil, São Paulo</p>
             <p class="flex items-center gap-1.5">
@@ -28,25 +31,14 @@ import SkillsViewport from './SkillsViewport';
           </div>
         </div>
 
-        <img
-          src="/images/NK_STUDIOS.png"
-          alt="NK Studios"
-          class="block h-auto w-full"
-        />
+        <div class="flex min-h-0 flex-1 items-start overflow-hidden pb-5">
+          <img
+            src="/images/NK_STUDIOS.png"
+            alt="NK Studios"
+            class="block h-full w-full object-contain object-left-bottom"
+          />
+        </div>
       </div>
     </div>
   </div>
 </section>
-
-<script>
-  const currentDateElement = document.querySelector('#current-date');
-
-  if (currentDateElement) {
-    currentDateElement.textContent = new Intl.DateTimeFormat('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      timeZone: 'America/Sao_Paulo',
-    }).format(new Date());
-  }
-</script>

@@ -1,0 +1,70 @@
+---
+const languages = [
+  { code: 'pt-BR', label: 'Portugues', country: 'br', active: true },
+  { code: 'en-US', label: 'English', country: 'us', active: false },
+  { code: 'es-ES', label: 'Espanol', country: 'es', active: false },
+];
+---
+
+<header class="fixed inset-x-0 top-0 z-50  bg-black/82 backdrop-blur-xl">
+  <div class="mx-auto flex h-[var(--header-height)] w-full max-w-[112rem] items-center justify-between px-3 sm:px-4 lg:px-0">
+    <a
+      href="#top"
+      aria-label="NK Studios"
+      class="flex shrink-0 items-center"
+    >
+      <img
+        src="/images/NK_STUDIOS_icone.png"
+        alt="NK Studios"
+        class="h-8 w-auto object-contain sm:h-9"
+      />
+    </a>
+
+    <div class="flex items-center gap-3 sm:gap-4 lg:gap-5">
+      <nav class="flex items-center gap-2 sm:gap-3">
+        <a
+          href="#sobre"
+          class="rounded-full px-3 py-2 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
+        >
+          Sobre
+        </a>
+        <a
+          href="#projetos"
+          class="rounded-full px-3 py-2 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
+        >
+          Projetos
+        </a>
+        <a
+          href="#contato"
+          class="rounded-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--page-bg)] transition hover:opacity-90"
+          style="color: var(--page-bg);"
+        >
+          Entrar em contato
+        </a>
+      </nav>
+
+      <details class="group relative">
+        <summary class="flex list-none items-center gap-2 rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] px-3 py-2 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]">
+          <span class="fi fi-br rounded-[0.15rem] text-base leading-none"></span>
+          <span class="hidden sm:inline">PT-BR</span>
+          <span class="text-[0.8rem] transition group-open:rotate-180">▾</span>
+        </summary>
+
+        <div class="absolute right-0 mt-3 w-44 rounded-2xl border border-[var(--line-mid)] bg-black/88 p-2 shadow-[var(--shadow-panel)] backdrop-blur-xl">
+          {languages.map((language) => (
+            <button
+              class:list={[
+                'flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.76rem] uppercase tracking-[0.14em] text-[var(--text-primary)] transition',
+                language.active ? 'bg-[var(--surface-soft)]' : 'hover:bg-[var(--surface-softer)]',
+              ]}
+              type="button"
+            >
+              <span class:list={['fi rounded-[0.15rem] text-base leading-none', `fi-${language.country}`]}></span>
+              <span>{language.label}</span>
+            </button>
+          ))}
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
