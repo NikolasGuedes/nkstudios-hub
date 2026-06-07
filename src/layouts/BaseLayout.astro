@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { __ } from '../lib/i18n';
 
 interface Props {
   title?: string;
@@ -8,20 +9,86 @@ interface Props {
 
 const {
   title = 'NK Studios Hub',
-  description = 'Base Astro com React para criar experiências rápidas e interativas.',
 } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-i18n-ready="true" data-locale="pt">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content={description} />
+    <meta
+      name="description"
+      data-i18n-attr-content={description}
+    />
     <link rel="icon" type="image/svg+xml" href="/NK_STUDIOS_ICON.svg" />
+    <style>
+      html[data-i18n-ready='false'] body {
+        visibility: hidden;
+      }
+    </style>
+    <script is:inline>
+      (() => {
+        const normalizeLocale = (value) => {
+          if (!value) return 'pt';
+
+          const normalized = value.trim().toLowerCase();
+
+          if (normalized === 'pr' || normalized.startsWith('pt')) return 'pt';
+          if (normalized.startsWith('es')) return 'es';
+          if (normalized.startsWith('en')) return 'en';
+
+          return 'pt';
+        };
+
+        const localeToLang = {
+          pt: 'pt-BR',
+          en: 'en-US',
+          es: 'es-ES',
+        };
+
+        let locale = 'pt';
+
+        try {
+          locale = normalizeLocale(window.localStorage.getItem('nkstudios-locale'));
+          window.localStorage.setItem('nkstudios-locale', locale);
+        } catch {
+          locale = 'pt';
+        }
+
+        document.documentElement.dataset.locale = locale;
+        document.documentElement.dataset.i18nReady = locale === 'pt' ? 'true' : 'false';
+        document.documentElement.lang = localeToLang[locale] ?? 'pt-BR';
+      })();
+    </script>
     <title>{title}</title>
   </head>
   <body class="bg-[var(--page-bg)] text-[var(--text-primary)] antialiased">
     <slot />
+    <script>
+      import {
+        ensureLocale,
+        getStoredLocale,
+        LOCALE_STORAGE_KEY,
+        subscribeLocaleChange,
+        translateDocument,
+      } from '../lib/i18n';
+
+      translateDocument(ensureLocale());
+
+      subscribeLocaleChange((locale) => {
+        translateDocument(locale);
+      });
+
+      window.addEventListener('storage', (event) => {
+        if (event.key !== LOCALE_STORAGE_KEY) return;
+
+        translateDocument(getStoredLocale());
+      });
+
+      window.addEventListener('focus', () => {
+        translateDocument(getStoredLocale());
+      });
+    </script>
   </body>
 </html>

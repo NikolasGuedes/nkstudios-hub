@@ -4,12 +4,13 @@ import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react';
 import { Eye, Grip, MousePointer2, X } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
 import { useRef, useState } from 'react';
+import { __, useLocale } from '../lib/i18n';
 import { CursorFollower } from './ui/cursor-follower';
 import type { Mesh } from 'three';
 
 const tabs = [
-  { id: 'modelagem3d', label: 'MODELAGEM 3D' },
-  { id: 'jogos', label: 'JOGOS' },
+  { id: 'modelagem3d', label: '3D MODELING' },
+  { id: 'jogos', label: 'GAMES' },
   { id: 'design', label: 'DESIGN' },
 ] as const;
 
@@ -108,6 +109,8 @@ function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
 }
 
 export default function SkillsViewport() {
+  useLocale();
+
   const activeTab = 'modelagem3d';
   const reduceMotion = useReducedMotion();
   const [detailsVisible, setDetailsVisible] = useState(false);
@@ -184,7 +187,7 @@ export default function SkillsViewport() {
 
       <div className="pointer-events-none absolute left-5 top-5 z-30 rounded-2xl md:left-8 md:top-8">
         <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-[var(--text-primary)]">
-          MY SKILLS
+          {__('MY SKILLS')}
         </p>
       </div>
 
@@ -205,7 +208,7 @@ export default function SkillsViewport() {
                 ].join(' ')}
                 type="button"
               >
-                {tab.label}
+                {__(tab.label)}
               </button>
             );
           })}
@@ -216,10 +219,10 @@ export default function SkillsViewport() {
         <div className="absolute bottom-5 left-5 z-30 max-w-[19rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">
             <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--text-primary)]">
-              Cena 3D ativa
+              {__('Active 3D scene')}
             </p>
             <button
-              aria-label="Esconder detalhes"
+              aria-label={__('Hide details')}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[var(--surface-softer)] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]"
               onClick={() => setDetailsVisible(false)}
               type="button"
@@ -229,13 +232,14 @@ export default function SkillsViewport() {
           </div>
 
           <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]">
-            O placeholder central sera substituido pelo seu modelo final. O foco
-            agora e estruturar viewport, grid, camera e fundo.
+            {__(
+              'The central placeholder will be replaced by your final model. For now, the focus is structuring the viewport, grid, camera, and background.',
+            )}
           </p>
         </div>
       ) : (
         <button
-          aria-label="Mostrar detalhes"
+          aria-label={__('Show details')}
           className="absolute bottom-5 left-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] text-[var(--text-primary)] shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:bg-[var(--surface-soft)] md:bottom-8 md:left-8"
           onClick={() => setDetailsVisible(true)}
           type="button"

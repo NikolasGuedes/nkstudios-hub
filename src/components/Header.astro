@@ -1,9 +1,8 @@
 ---
-const languages = [
-  { code: 'pt-BR', label: 'Portugues', country: 'br', active: true },
-  { code: 'en-US', label: 'English', country: 'us', active: false },
-  { code: 'es-ES', label: 'Espanol', country: 'es', active: false },
-];
+import { __, DEFAULT_LOCALE, LOCALE_OPTIONS } from '../lib/i18n';
+
+const activeLocale = DEFAULT_LOCALE;
+const activeOption = LOCALE_OPTIONS.find((language) => language.code === activeLocale) ?? LOCALE_OPTIONS[0];
 ---
 
 <header class="fixed inset-x-0 top-0 z-50  bg-black/82 backdrop-blur-xl">
@@ -24,28 +23,35 @@ const languages = [
       <nav class="hidden items-center gap-2 md:flex md:gap-3">
         <a
           href="#sobre"
+          data-i18n-key="About"
           class="rounded-full px-3 py-2 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
         >
-          Sobre
+          {__('About')}
         </a>
         <a
           href="#projetos"
+          data-i18n-key="Projects"
           class="rounded-full px-3 py-2 text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
         >
-          Projetos
+          {__('Projects')}
         </a>
         <a
           href="#contato"
+          data-i18n-key="Get in touch"
           class="rounded-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--page-bg)] transition hover:opacity-90"
           style="color: var(--page-bg);"
         >
-          Entrar em contato
+          {__('Get in touch')}
         </a>
       </nav>
 
       <details data-mobile-nav class="group relative md:hidden">
-        <summary class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]">
-          <span class="sr-only">Abrir menu</span>
+        <summary
+          class="flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]"
+          aria-label={__('Open menu')}
+          data-i18n-attr-aria-label="Open menu"
+        >
+          <span class="sr-only" data-i18n-key="Open menu">{__('Open menu')}</span>
           <span class="flex flex-col gap-[0.22rem]">
             <span class="block h-px w-4 bg-current"></span>
             <span class="block h-px w-4 bg-current"></span>
@@ -56,43 +62,52 @@ const languages = [
         <div class="absolute right-0 mt-3 flex w-[15rem] flex-col gap-2 rounded-3xl border border-[var(--line-mid)] bg-black/92 p-3 shadow-[var(--shadow-panel-lg)] backdrop-blur-xl">
           <a
             href="#sobre"
+            data-i18n-key="About"
             class="rounded-2xl px-4 py-3 text-[0.78rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
           >
-            Sobre
+            {__('About')}
           </a>
           <a
             href="#projetos"
+            data-i18n-key="Projects"
             class="rounded-2xl px-4 py-3 text-[0.78rem] font-medium uppercase tracking-[0.16em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
           >
-            Projetos
+            {__('Projects')}
           </a>
           <a
             href="#contato"
+            data-i18n-key="Get in touch"
             class="rounded-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-4 py-3 text-center text-[0.78rem] font-semibold uppercase tracking-[0.14em] transition hover:opacity-90"
             style="color: var(--page-bg);"
           >
-            Entrar em contato
+            {__('Get in touch')}
           </a>
         </div>
       </details>
 
       <details data-language-switcher class="group relative">
-        <summary class="flex h-11 min-w-[2.5rem] cursor-pointer list-none items-center justify-center gap-2 rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] px-3 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)] md:min-w-[3rem]">
-          <span class="fi fi-br rounded-[0.15rem] text-base leading-none"></span>
-          <span class="hidden sm:inline">PT-BR</span>
+        <summary
+          data-language-summary
+          class="flex h-11 min-w-[2.5rem] cursor-pointer list-none items-center justify-center gap-2 rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] px-3 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)] md:min-w-[3rem]"
+        >
+          <span
+            data-language-flag
+            class:list={['fi rounded-[0.15rem] text-base leading-none', `fi-${activeOption.country}`]}
+          ></span>
+          <span data-language-code class="hidden sm:inline">{activeOption.shortLabel}</span>
         </summary>
 
         <div class="absolute right-0 mt-3 w-44 rounded-2xl border border-[var(--line-mid)] bg-black/88 p-2 shadow-[var(--shadow-panel)] backdrop-blur-xl">
-          {languages.map((language) => (
+          {LOCALE_OPTIONS.map((language) => (
             <button
-              class:list={[
-                'flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.76rem] uppercase tracking-[0.14em] text-[var(--text-primary)] transition',
-                language.active ? 'bg-[var(--surface-soft)]' : 'hover:bg-[var(--surface-softer)]',
-              ]}
+              class="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.76rem] uppercase tracking-[0.14em] text-[var(--text-primary)] transition data-[active=true]:bg-[var(--surface-soft)] data-[active=false]:hover:bg-[var(--surface-softer)]"
+              aria-pressed={language.code === activeLocale ? 'true' : 'false'}
+              data-active={language.code === activeLocale ? 'true' : 'false'}
+              data-locale-option={language.code}
               type="button"
             >
               <span class:list={['fi rounded-[0.15rem] text-base leading-none', `fi-${language.country}`]}></span>
-              <span>{language.label}</span>
+              <span data-i18n-key={language.labelKey}>{__(language.labelKey)}</span>
             </button>
           ))}
         </div>
@@ -102,6 +117,8 @@ const languages = [
 </header>
 
 <script>
+  import { setLocale, syncLocaleControls, translateDocument } from '../lib/i18n';
+
   const bindDetailsDismiss = (selector) => {
     const element = document.querySelector(selector);
 
@@ -127,4 +144,32 @@ const languages = [
 
   bindDetailsDismiss('[data-language-switcher]');
   bindDetailsDismiss('[data-mobile-nav]');
+
+  const languageOptions = Array.from(document.querySelectorAll('[data-locale-option]'));
+
+  for (const element of languageOptions) {
+    if (!(element instanceof HTMLButtonElement)) continue;
+
+    element.addEventListener('click', () => {
+      const nextLocale = element.dataset.localeOption ?? 'pt';
+      const details = element.closest('details');
+      const locale = setLocale(nextLocale);
+
+      syncLocaleControls(locale);
+      translateDocument(locale);
+
+      for (const option of languageOptions) {
+        if (!(option instanceof HTMLButtonElement)) continue;
+
+        option.setAttribute(
+          'aria-pressed',
+          option.dataset.localeOption === locale ? 'true' : 'false',
+        );
+      }
+
+      if (details instanceof HTMLDetailsElement) {
+        details.open = false;
+      }
+    });
+  }
 </script>
