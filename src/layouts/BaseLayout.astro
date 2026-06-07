@@ -25,7 +25,7 @@ const {
     />
     <link rel="icon" type="image/svg+xml" href="/NK_STUDIOS_ICON.svg" />
     <style>
-      html[data-i18n-ready='false'] body {
+      html[data-i18n-ready='false'] [data-page-shell] {
         visibility: hidden;
       }
     </style>
@@ -60,13 +60,36 @@ const {
 
         document.documentElement.dataset.locale = locale;
         document.documentElement.dataset.i18nReady = locale === 'pt' ? 'true' : 'false';
+        document.documentElement.dataset.pageLoading = 'true';
         document.documentElement.lang = localeToLang[locale] ?? 'pt-BR';
       })();
     </script>
     <title>{title}</title>
   </head>
   <body class="bg-[var(--page-bg)] text-[var(--text-primary)] antialiased">
-    <slot />
+    <div
+      id="initial-loader"
+      class="initial-loader"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div class="initial-loader__content">
+        <img
+          src="/images/NK_STUDIOS_icone.png"
+          alt="NK Studios"
+          class="initial-loader__icon"
+          data-loading-ignore
+        />
+        <p class="initial-loader__progress" aria-label="Loading progress">
+          <span data-loading-value>0</span><span>%</span>
+        </p>
+      </div>
+    </div>
+
+    <div data-page-shell class="page-shell">
+      <slot />
+    </div>
+
     <script>
       import {
         ensureLocale,
@@ -91,6 +114,155 @@ const {
       window.addEventListener('focus', () => {
         translateDocument(getStoredLocale());
       });
+    </script>
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        const loader = document.getElementById('initial-loader');
+        const progressValue = loader?.querySelector('[data-loading-value]');
+        const viewport = document.querySelector('[data-skills-viewport-host]');
+
+        if (!(loader instanceof HTMLElement) || !(progressValue instanceof HTMLElement)) {
+          root.dataset.pageLoading = 'false';
+          return;
+        }
+
+        const taskState = new Map();
+        let completedTasks = 0;
+        let targetProgress = 0;
+        let displayedProgress = 0;
+        let readyToReveal = false;
+        let loaderDismissed = false;
+        let animationFrameId = 0;
+        const minimumLoaderTime = 450;
+        const startedAt = window.performance.now();
+
+        const updateTargetProgress = () => {
+          const totalTasks = Math.max(taskState.size, 1);
+          targetProgress = Math.round((completedTasks / totalTasks) * 100);
+          loader.style.setProperty('--loading-progress', `${targetProgress}%`);
+        };
+
+        const registerTask = (id) => {
+          if (taskState.has(id)) return;
+
+          taskState.set(id, false);
+          updateTargetProgress();
+        };
+
+        const completeTask = (id) => {
+          if (!taskState.has(id) || taskState.get(id) === true) return;
+
+          taskState.set(id, true);
+          completedTasks += 1;
+          updateTargetProgress();
+
+          if (completedTasks === taskState.size) {
+            readyToReveal = true;
+          }
+        };
+
+        const dismissLoader = () => {
+          if (loaderDismissed) return;
+
+          loaderDismissed = true;
+          displayedProgress = 100;
+          progressValue.textContent = '100';
+          loader.dataset.complete = 'true';
+          loader.setAttribute('aria-busy', 'false');
+          root.dataset.pageLoading = 'false';
+
+          window.setTimeout(() => {
+            loader.remove();
+          }, 700);
+        };
+
+        const animateProgress = () => {
+          const difference = targetProgress - displayedProgress;
+
+          if (Math.abs(difference) < 0.35) {
+            displayedProgress = targetProgress;
+          } else {
+            displayedProgress += difference * 0.16;
+          }
+
+          progressValue.textContent = String(Math.round(displayedProgress));
+
+          const minimumTimeReached = window.performance.now() - startedAt >= minimumLoaderTime;
+
+          if (readyToReveal && displayedProgress >= 99.6 && minimumTimeReached) {
+            dismissLoader();
+            return;
+          }
+
+          animationFrameId = window.requestAnimationFrame(animateProgress);
+        };
+
+        registerTask('window-load');
+        if (document.readyState === 'complete') {
+          completeTask('window-load');
+        } else {
+          window.addEventListener('load', () => completeTask('window-load'), { once: true });
+        }
+
+        registerTask('fonts-ready');
+        if ('fonts' in document && document.fonts?.ready) {
+          document.fonts.ready
+            .catch(() => undefined)
+            .finally(() => completeTask('fonts-ready'));
+        } else {
+          completeTask('fonts-ready');
+        }
+
+        const images = Array.from(document.images).filter(
+          (image) => !image.hasAttribute('data-loading-ignore'),
+        );
+
+        for (const [index, image] of images.entries()) {
+          const taskId = `image-${index}`;
+          registerTask(taskId);
+
+          const markImageReady = () => completeTask(taskId);
+
+          if (image.complete) {
+            if (typeof image.decode === 'function') {
+              image.decode().catch(() => undefined).finally(markImageReady);
+            } else {
+              markImageReady();
+            }
+
+            continue;
+          }
+
+          image.addEventListener('load', markImageReady, { once: true });
+          image.addEventListener('error', markImageReady, { once: true });
+        }
+
+        registerTask('viewport-ready');
+        if (viewport) {
+          const viewportTimeoutId = window.setTimeout(() => {
+            completeTask('viewport-ready');
+          }, 3200);
+
+          window.addEventListener(
+            'nkstudios:viewport-ready',
+            () => {
+              window.clearTimeout(viewportTimeoutId);
+              completeTask('viewport-ready');
+            },
+            { once: true },
+          );
+        } else {
+          completeTask('viewport-ready');
+        }
+
+        window.addEventListener('pagehide', () => {
+          window.cancelAnimationFrame(animationFrameId);
+        });
+
+        updateTargetProgress();
+        animationFrameId = window.requestAnimationFrame(animateProgress);
+      })();
     </script>
   </body>
 </html>

@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react';
 import { Eye, Grip, MousePointer2, X } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { __, useLocale } from '../lib/i18n';
 import { CursorFollower } from './ui/cursor-follower';
 import type { Mesh } from 'three';
@@ -28,6 +28,7 @@ const SCENE_COLORS = {
 const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
 const MODEL_POSITION: [number, number, number] = [0, -0.08, 0];
 const ORBIT_TARGET: [number, number, number] = MODEL_POSITION;
+const VIEWPORT_READY_EVENT = 'nkstudios:viewport-ready';
 
 function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
   const meshRef = useRef<Mesh>(null);
@@ -116,8 +117,35 @@ export default function SkillsViewport() {
   const [detailsVisible, setDetailsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+    let timeoutId = 0;
+    let firstFrameId = 0;
+    let secondFrameId = 0;
+
+    const dispatchReady = () => {
+      if (cancelled) return;
+
+      window.dispatchEvent(new CustomEvent(VIEWPORT_READY_EVENT));
+    };
+
+    firstFrameId = window.requestAnimationFrame(() => {
+      secondFrameId = window.requestAnimationFrame(dispatchReady);
+    });
+
+    timeoutId = window.setTimeout(dispatchReady, 1200);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+      window.cancelAnimationFrame(firstFrameId);
+      window.cancelAnimationFrame(secondFrameId);
+    };
+  }, []);
+
   return (
     <section
+      data-skills-viewport
       ref={sectionRef}
       className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--skill-blue)]"
     >
