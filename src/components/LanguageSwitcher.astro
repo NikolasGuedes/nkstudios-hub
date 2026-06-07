@@ -1,0 +1,77 @@
+---
+import { __, DEFAULT_LOCALE, LOCALE_OPTIONS } from '../lib/i18n';
+
+const activeLocale = DEFAULT_LOCALE;
+const activeOption = LOCALE_OPTIONS.find((language) => language.code === activeLocale) ?? LOCALE_OPTIONS[0];
+---
+
+<details data-language-switcher class="group relative">
+  <summary
+    data-language-summary
+    class="flex h-11 min-w-[2.5rem] cursor-pointer list-none items-center justify-center gap-2 rounded-full border border-[var(--line-mid)] bg-[var(--surface-softer)] px-3 text-[0.72rem] font-medium uppercase tracking-[0.14em] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)] md:min-w-[3rem]"
+  >
+    <span
+      data-language-flag
+      class:list={['fi rounded-[0.15rem] text-base leading-none', `fi-${activeOption.country}`]}
+    ></span>
+    <span data-language-code class="hidden sm:inline">{activeOption.shortLabel}</span>
+  </summary>
+
+  <div class="absolute right-0 mt-3 w-44 rounded-2xl border border-[var(--line-mid)] bg-black/88 p-2 shadow-[var(--shadow-panel)] backdrop-blur-xl">
+    {LOCALE_OPTIONS.map((language) => (
+      <button
+        class="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2 text-left text-[0.76rem] uppercase tracking-[0.14em] text-[var(--text-primary)] transition data-[active=true]:bg-[var(--surface-soft)] data-[active=false]:hover:bg-[var(--surface-softer)]"
+        aria-pressed={language.code === activeLocale ? 'true' : 'false'}
+        data-active={language.code === activeLocale ? 'true' : 'false'}
+        data-locale-option={language.code}
+        type="button"
+      >
+        <span class:list={['fi rounded-[0.15rem] text-base leading-none', `fi-${language.country}`]}></span>
+        <span data-i18n-key={language.labelKey}>{__(language.labelKey)}</span>
+      </button>
+    ))}
+  </div>
+</details>
+
+<script>
+  import { setLocale, syncLocaleControls, translateDocument } from '../lib/i18n';
+
+  const languageSwitcher = document.querySelector('[data-language-switcher]');
+  const languageOptions = Array.from(document.querySelectorAll('[data-locale-option]'));
+
+  if (languageSwitcher instanceof HTMLDetailsElement) {
+    const closeOnOutsideClick = (event) => {
+      const target = event.target;
+
+      if (!(target instanceof Node)) return;
+      if (languageSwitcher.contains(target)) return;
+
+      languageSwitcher.open = false;
+    };
+
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return;
+
+      languageSwitcher.open = false;
+    };
+
+    document.addEventListener('click', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+  }
+
+  for (const element of languageOptions) {
+    if (!(element instanceof HTMLButtonElement)) continue;
+
+    element.addEventListener('click', () => {
+      const nextLocale = element.dataset.localeOption ?? 'pt';
+      const locale = setLocale(nextLocale);
+
+      syncLocaleControls(locale);
+      translateDocument(locale);
+
+      if (languageSwitcher instanceof HTMLDetailsElement) {
+        languageSwitcher.open = false;
+      }
+    });
+  }
+</script>

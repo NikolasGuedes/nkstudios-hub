@@ -153,6 +153,10 @@ export function syncLocaleControls(locale = getLocale()) {
 
   for (const element of languageOptions) {
     element.dataset.active = element.dataset.localeOption === option.code ? 'true' : 'false';
+    element.setAttribute(
+      'aria-pressed',
+      element.dataset.localeOption === option.code ? 'true' : 'false',
+    );
   }
 }
 
