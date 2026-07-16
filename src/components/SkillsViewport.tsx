@@ -1,11 +1,11 @@
 import { Float, Grid, OrbitControls, PerspectiveCamera } from '@react-three/drei';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react';
 import { Eye, Grip, MousePointer2, X } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { __, useLocale } from '../lib/i18n';
 import { CursorFollower } from './ui/cursor-follower';
+import ShaderBackground from './ShaderBackground';
 import type { Mesh } from 'three';
 
 const tabs = [
@@ -20,9 +20,6 @@ const SCENE_COLORS = {
   grid: '#d7e8ff',
   mesh: '#ffffff',
   point: '#006fff',
-  shaderBlue: '#006FFF',
-  shaderBlueSoft: '#0E70EB',
-  shaderBlueStrong: '#005eeb',
 } as const;
 
 const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
@@ -128,7 +125,7 @@ export default function SkillsViewport() {
         const entry = entries[0];
         if (entry) setIsViewportVisible(entry.isIntersecting);
       },
-      { rootMargin: '200px 0px' },
+      { rootMargin: '80px 0px' },
     );
 
     observer.observe(node);
@@ -168,61 +165,7 @@ export default function SkillsViewport() {
       ref={sectionRef}
       className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--skill-blue)]"
     >
-      <div className="absolute inset-0">
-        <ShaderGradientCanvas
-          className="h-full w-full"
-          pixelDensity={1}
-          pointerEvents="none"
-          style={{ width: '100%', height: '100%' }}
-        >
-          <ShaderGradient
-            animate={reduceMotion || !isViewportVisible ? 'off' : 'on'}
-            axesHelper="off"
-            bgColor1="var(--page-bg)"
-            bgColor2="var(--page-bg)"
-            brightness={1.2}
-            cAzimuthAngle={180}
-            cDistance={3.6}
-            cPolarAngle={90}
-            cameraZoom={1}
-            color1={SCENE_COLORS.shaderBlue}
-            color2={SCENE_COLORS.shaderBlueStrong}
-            color3={SCENE_COLORS.shaderBlueSoft}
-            control="props"
-            destination="onCanvas"
-            embedMode="off"
-            envPreset="city"
-            format="gif"
-            fov={45}
-            frameRate={10}
-            gizmoHelper="hide"
-            grain="off"
-            lightType="3d"
-            positionX={-1.4}
-            positionY={0}
-            positionZ={0}
-            range="disabled"
-            rangeEnd={40}
-            rangeStart={0}
-            reflection={0.1}
-            rotationX={0}
-            rotationY={10}
-            rotationZ={50}
-            shader="defaults"
-            type="waterPlane"
-            uAmplitude={1}
-            uDensity={1.3}
-            uFrequency={5.5}
-            uSpeed={0.1}
-            uStrength={4.8}
-            uTime={0}
-            wireframe={false}
-          />
-        </ShaderGradientCanvas>
-      </div>
-
-      <div className="pointer-events-none absolute inset-0 bg-[var(--surface-blur)] backdrop-blur-[22px]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.012)_22%,rgba(18,90,255,0.035)_58%,rgba(8,56,201,0.1)_100%)]" />
+      <ShaderBackground isVisible={isViewportVisible} reduceMotion={reduceMotion} />
 
       <Scene3D isVisible={isViewportVisible} reduceMotion={reduceMotion} />
       <CursorFollower

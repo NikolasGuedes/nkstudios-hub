@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { __ } from '../lib/i18n';
+import Header from '../components/Header.astro';
 
 interface Props {
   title?: string;
@@ -87,6 +88,7 @@ const {
     </div>
 
     <div data-page-shell class="page-shell">
+      <Header />
       <slot />
     </div>
 
