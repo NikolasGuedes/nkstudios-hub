@@ -1,0 +1,40 @@
+---
+import { __ } from '../lib/i18n';
+import AboutKpiLoop from './AboutKpiLoop.jsx';
+---
+
+<section id="sobre" class="relative bg-[var(--page-bg)] text-[var(--text-primary)] px-3 py-16 sm:px-4 sm:py-20 lg:px-6 lg:py-24">
+  <div class="mx-auto grid w-full max-w-[112rem] grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+    <div class="flex flex-col justify-center gap-8 lg:gap-10">
+      <p class="text-[clamp(1.05rem,1.6vw,1.4rem)] leading-relaxed text-[var(--text-primary)]">
+        <span data-i18n-key="My name is">{__('My name is')}</span>{' '}
+        <strong class="font-semibold">Nikolas Guedes</strong>.{' '}
+        <span data-i18n-key="I've worked as a game developer and UI Designer, currently focused on improving my skills related to programming and creating captivating and intuitive interfaces.">
+          {__("I've worked as a game developer and UI Designer, currently focused on improving my skills related to programming and creating captivating and intuitive interfaces.")}
+        </span>
+      </p>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <a
+          href="#"
+          data-i18n-key="DOWNLOAD CV"
+          class="rounded-full border border-[var(--text-primary)] bg-[var(--text-primary)] px-6 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.14em] transition hover:opacity-90"
+          style="color: var(--page-bg);"
+        >
+          {__('DOWNLOAD CV')}
+        </a>
+        <a
+          href="#"
+          data-i18n-key="MY SKILLS"
+          class="rounded-full border border-[var(--text-primary)] px-6 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-[var(--text-primary)] transition hover:bg-[var(--surface-softer)]"
+        >
+          {__('MY SKILLS')}
+        </a>
+      </div>
+    </div>
+
+    <div>
+      <AboutKpiLoop client:only="react" />
+    </div>
+  </div>
+</section>
