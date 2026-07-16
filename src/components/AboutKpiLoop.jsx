@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import LogoLoop from './LogoLoop.jsx';
 import { __, useLocale } from '../lib/i18n';
 import './AboutSection.css';
@@ -25,6 +25,28 @@ function renderKpiCard(item) {
 
 export default function AboutKpiLoop() {
   const locale = useLocale();
+  const wrapperRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = wrapperRef.current;
+    if (!node || !window.IntersectionObserver) {
+      setIsVisible(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const entry = entries[0];
+        if (entry) setIsVisible(entry.isIntersecting);
+      },
+      { rootMargin: '200px 0px' }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
 
   const logos = useMemo(
     () => KPI_DEFS.map(def => ({ value: def.value, label: __(def.labelKey) })),
@@ -32,18 +54,20 @@ export default function AboutKpiLoop() {
   );
 
   return (
-    <div className="about-kpi-loop">
-      <LogoLoop
-        logos={logos}
-        direction="up"
-        speed={38}
-        gap={16}
-        hoverSpeed={0}
-        fadeOut
-        fadeOutColor="#000000"
-        renderItem={renderKpiCard}
-        ariaLabel={__('Key achievements')}
-      />
+    <div className="about-kpi-loop" ref={wrapperRef}>
+      {isVisible ? (
+        <LogoLoop
+          logos={logos}
+          direction="up"
+          speed={38}
+          gap={16}
+          hoverSpeed={0}
+          fadeOut
+          fadeOutColor="#000000"
+          renderItem={renderKpiCard}
+          ariaLabel={__('Key achievements')}
+        />
+      ) : null}
     </div>
   );
 }

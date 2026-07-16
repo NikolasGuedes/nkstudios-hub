@@ -63,11 +63,12 @@ function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
   );
 }
 
-function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
+function Scene3D({ reduceMotion, isVisible }: { reduceMotion: boolean | null; isVisible: boolean }) {
   return (
     <Canvas
       className="absolute inset-0 h-full w-full"
       dpr={[1, 1.5]}
+      frameloop={isVisible ? 'always' : 'never'}
       gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
       shadows={false}
     >
@@ -115,7 +116,25 @@ export default function SkillsViewport() {
   const activeTab = 'modelagem3d';
   const reduceMotion = useReducedMotion();
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const [isViewportVisible, setIsViewportVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node || !window.IntersectionObserver) return;
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const entry = entries[0];
+        if (entry) setIsViewportVisible(entry.isIntersecting);
+      },
+      { rootMargin: '200px 0px' },
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,7 +176,7 @@ export default function SkillsViewport() {
           style={{ width: '100%', height: '100%' }}
         >
           <ShaderGradient
-            animate={reduceMotion ? 'off' : 'on'}
+            animate={reduceMotion || !isViewportVisible ? 'off' : 'on'}
             axesHelper="off"
             bgColor1="var(--page-bg)"
             bgColor2="var(--page-bg)"
@@ -205,7 +224,7 @@ export default function SkillsViewport() {
       <div className="pointer-events-none absolute inset-0 bg-[var(--surface-blur)] backdrop-blur-[22px]" />
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.012)_22%,rgba(18,90,255,0.035)_58%,rgba(8,56,201,0.1)_100%)]" />
 
-      <Scene3D reduceMotion={reduceMotion} />
+      <Scene3D isVisible={isViewportVisible} reduceMotion={reduceMotion} />
       <CursorFollower
         containerRef={sectionRef}
         defaultIcon={<Grip size={18} strokeWidth={2.1} />}
