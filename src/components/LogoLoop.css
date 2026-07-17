@@ -171,6 +171,15 @@
   );
 }
 
+.logoloop--draggable .logoloop__track {
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.logoloop--draggable .logoloop__track:active {
+  cursor: grabbing;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .logoloop__track {
     transform: translate3d(0, 0, 0) !important;

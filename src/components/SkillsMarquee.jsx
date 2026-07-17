@@ -7,7 +7,7 @@ const CATEGORIES = [
   {
     id: 'web',
     labelKey: 'WEB DEVELOPER',
-    items: ['VUE.JS', 'REACT.JS', 'REACT THREE FIBER', 'PHP', 'LARAVEL', 'MOTION', 'TAILWIND', 'ASTRO']
+    items: ['VUE', 'REACT', 'PHP', 'LARAVEL', 'MOTION', 'TAILWIND', 'ASTRO']
   },
   { id: 'game', labelKey: 'GAME DEVELOPER', items: ['BLENDER', 'UNITY', 'C#'] },
   { id: 'design', labelKey: 'UI/UX DESIGNER', items: ['FIGMA', 'SPLINE'] }
@@ -22,11 +22,19 @@ function renderBackgroundItem(item) {
   );
 }
 
-function renderForegroundItem(item) {
+function renderForegroundItem(item, _key, { isHighlighted } = {}) {
   return (
-    <span className="flex items-center gap-8 text-[clamp(3.5rem,100vh,20rem)] font-extrabold uppercase leading-none text-[var(--Branco)]">
-      {item}
-      <span aria-hidden="true">-</span>
+    <span className="relative flex items-center gap-8 text-[clamp(3.5rem,100vh,10rem)] font-extrabold uppercase leading-none text-[var(--Branco)]">
+      {isHighlighted ? (
+        <img
+          src="/images/Skills_logos/vue.svg"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[4em] w-auto -translate-x-1/2 -translate-y-1/2"
+        />
+      ) : null}
+      <span className="relative z-10">{item}</span>
+      <span aria-hidden="true" className="relative z-10">-</span>
     </span>
   );
 }
@@ -115,6 +123,8 @@ export default function SkillsMarquee() {
                 speed={55}
                 gap={48}
                 pauseOnHover={false}
+                draggable
+                highlightCenter
                 renderItem={renderForegroundItem}
                 ariaLabel={__(activeCategory.labelKey)}
               />

@@ -56,10 +56,19 @@ const useImageLoader = (seqRef, onLoad, dependencies) => {
   }, [onLoad, seqRef, dependencies]);
 };
 
-const useAnimationLoop = (trackRef, targetVelocity, seqWidth, seqHeight, isHovered, hoverSpeed, isVertical) => {
+const useAnimationLoop = (
+  trackRef,
+  targetVelocity,
+  seqWidth,
+  seqHeight,
+  isHovered,
+  hoverSpeed,
+  isVertical,
+  offsetRef,
+  isDraggingRef
+) => {
   const rafRef = useRef(null);
   const lastTimestampRef = useRef(null);
-  const offsetRef = useRef(0);
   const velocityRef = useRef(0);
 
   useEffect(() => {
@@ -83,6 +92,11 @@ const useAnimationLoop = (trackRef, targetVelocity, seqWidth, seqHeight, isHover
 
       const deltaTime = Math.max(0, timestamp - lastTimestampRef.current) / 1000;
       lastTimestampRef.current = timestamp;
+
+      if (isDraggingRef.current) {
+        rafRef.current = requestAnimationFrame(animate);
+        return;
+      }
 
       const target = isHovered && hoverSpeed !== undefined ? hoverSpeed : targetVelocity;
 
@@ -112,7 +126,7 @@ const useAnimationLoop = (trackRef, targetVelocity, seqWidth, seqHeight, isHover
       }
       lastTimestampRef.current = null;
     };
-  }, [targetVelocity, seqWidth, seqHeight, isHovered, hoverSpeed, isVertical, trackRef]);
+  }, [targetVelocity, seqWidth, seqHeight, isHovered, hoverSpeed, isVertical, trackRef, offsetRef, isDraggingRef]);
 };
 
 export const LogoLoop = memo(
@@ -128,6 +142,8 @@ export const LogoLoop = memo(
     fadeOut = false,
     fadeOutColor,
     scaleOnHover = false,
+    draggable = false,
+    highlightCenter = false,
     renderItem,
     ariaLabel = 'Partner logos',
     className,
@@ -137,10 +153,17 @@ export const LogoLoop = memo(
     const trackRef = useRef(null);
     const seqRef = useRef(null);
 
+    const offsetRef = useRef(0);
+    const isDraggingRef = useRef(false);
+    const dragStartXRef = useRef(0);
+    const dragStartOffsetRef = useRef(0);
+    const itemElementsRef = useRef(new Map());
+
     const [seqWidth, setSeqWidth] = useState(0);
     const [seqHeight, setSeqHeight] = useState(0);
     const [copyCount, setCopyCount] = useState(ANIMATION_CONFIG.MIN_COPIES);
     const [isHovered, setIsHovered] = useState(false);
+    const [highlightedKey, setHighlightedKey] = useState(null);
 
     const effectiveHoverSpeed = useMemo(() => {
       if (hoverSpeed !== undefined) return hoverSpeed;
@@ -192,7 +215,95 @@ export const LogoLoop = memo(
 
     useImageLoader(seqRef, updateDimensions, [logos, gap, logoHeight, isVertical]);
 
-    useAnimationLoop(trackRef, targetVelocity, seqWidth, seqHeight, isHovered, effectiveHoverSpeed, isVertical);
+    useAnimationLoop(
+      trackRef,
+      targetVelocity,
+      seqWidth,
+      seqHeight,
+      isHovered,
+      effectiveHoverSpeed,
+      isVertical,
+      offsetRef,
+      isDraggingRef
+    );
+
+    const updateHighlightedItem = useCallback(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const containerCenterX = containerRect.left + containerRect.width / 2;
+
+      let closestKey = null;
+      let closestDistance = Infinity;
+
+      itemElementsRef.current.forEach((element, key) => {
+        const rect = element.getBoundingClientRect();
+        const itemCenterX = rect.left + rect.width / 2;
+        const distance = Math.abs(itemCenterX - containerCenterX);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestKey = key;
+        }
+      });
+
+      setHighlightedKey(previous => (previous === closestKey ? previous : closestKey));
+    }, []);
+
+    const handlePointerDown = useCallback(
+      event => {
+        if (!draggable || seqWidth <= 0) return;
+
+        isDraggingRef.current = true;
+        dragStartXRef.current = event.clientX;
+        dragStartOffsetRef.current = offsetRef.current;
+        event.currentTarget.setPointerCapture(event.pointerId);
+      },
+      [draggable, seqWidth]
+    );
+
+    const handlePointerMove = useCallback(
+      event => {
+        if (!draggable || !isDraggingRef.current || seqWidth <= 0) return;
+
+        const delta = event.clientX - dragStartXRef.current;
+        let nextOffset = dragStartOffsetRef.current - delta;
+        nextOffset = ((nextOffset % seqWidth) + seqWidth) % seqWidth;
+        offsetRef.current = nextOffset;
+
+        const track = trackRef.current;
+        if (track) {
+          track.style.transform = `translate3d(${-nextOffset}px, 0, 0)`;
+        }
+      },
+      [draggable, seqWidth]
+    );
+
+    const handlePointerUp = useCallback(
+      event => {
+        if (!draggable) return;
+
+        isDraggingRef.current = false;
+        if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+      },
+      [draggable]
+    );
+
+    useEffect(() => {
+      if (!highlightCenter) {
+        setHighlightedKey(null);
+        return;
+      }
+
+      let frameId = requestAnimationFrame(function tick() {
+        updateHighlightedItem();
+        frameId = requestAnimationFrame(tick);
+      });
+
+      return () => cancelAnimationFrame(frameId);
+    }, [highlightCenter, updateHighlightedItem]);
 
     const cssVariables = useMemo(
       () => ({
@@ -210,11 +321,12 @@ export const LogoLoop = memo(
           isVertical ? 'logoloop--vertical' : 'logoloop--horizontal',
           fadeOut && 'logoloop--fade',
           scaleOnHover && 'logoloop--scale-hover',
+          draggable && 'logoloop--draggable',
           className
         ]
           .filter(Boolean)
           .join(' '),
-      [isVertical, fadeOut, scaleOnHover, className]
+      [isVertical, fadeOut, scaleOnHover, draggable, className]
     );
 
     const handleMouseEnter = useCallback(() => {
@@ -226,10 +338,16 @@ export const LogoLoop = memo(
 
     const renderLogoItem = useCallback(
       (item, key) => {
+        const setItemRef = element => {
+          if (!highlightCenter) return;
+          if (element) itemElementsRef.current.set(key, element);
+          else itemElementsRef.current.delete(key);
+        };
+
         if (renderItem) {
           return (
-            <li className="logoloop__item" key={key} role="listitem">
-              {renderItem(item, key)}
+            <li className="logoloop__item" key={key} role="listitem" ref={setItemRef}>
+              {renderItem(item, key, { isHighlighted: highlightCenter && key === highlightedKey })}
             </li>
           );
         }
@@ -272,7 +390,7 @@ export const LogoLoop = memo(
           </li>
         );
       },
-      [renderItem]
+      [renderItem, highlightCenter, highlightedKey]
     );
 
     const logoLists = useMemo(
@@ -306,7 +424,16 @@ export const LogoLoop = memo(
 
     return (
       <div ref={containerRef} className={rootClassName} style={containerStyle} role="region" aria-label={ariaLabel}>
-        <div className="logoloop__track" ref={trackRef} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div
+          className="logoloop__track"
+          ref={trackRef}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+        >
           {logoLists}
         </div>
       </div>
