@@ -8,12 +8,6 @@ import { CursorFollower } from './ui/cursor-follower';
 import ShaderBackground from './ShaderBackground';
 import type { Mesh } from 'three';
 
-const tabs = [
-  { id: 'modelagem3d', label: '3D MODELING' },
-  { id: 'jogos', label: 'GAMES' },
-  { id: 'design', label: 'DESIGN' },
-] as const;
-
 const SCENE_COLORS = {
   directional: '#ffffff',
   emissive: '#8cc8ff',
@@ -110,7 +104,6 @@ function Scene3D({ reduceMotion, isVisible }: { reduceMotion: boolean | null; is
 export default function SkillsViewport() {
   useLocale();
 
-  const activeTab = 'modelagem3d';
   const reduceMotion = useReducedMotion();
   const [detailsVisible, setDetailsVisible] = useState(false);
   const [isViewportVisible, setIsViewportVisible] = useState(true);
