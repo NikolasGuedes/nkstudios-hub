@@ -23,7 +23,7 @@
   --surface-softer: rgba(255, 255, 255, 0.08);
   --surface-hover: rgba(255, 255, 255, 0.18);
   --surface-blur: rgba(255, 255, 255, 0.025);
-  --text-primary: #F4F2ED;
+  --Branco: #F4F2ED;
   --text-secondary: #ffffff;
   --line: rgba(255, 255, 255, 0.12);
   --line-soft: rgba(255, 255, 255, 0.1);
@@ -31,6 +31,7 @@
   --line-strong: rgba(255, 255, 255, 0.18);
   --line-bright: rgba(255, 255, 255, 0.35);
   --header-height: 4.75rem;
+  --Azul: #006FFF;
   --skill-blue: #1568ff;
   --skill-blue-strong: #014eeb;
   --skill-blue-bright: #006fff;
@@ -101,21 +102,12 @@ section[id] {
   }
 }
 
-@keyframes skills-marquee-fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
 body {
   font-family: var(--font-display);
   background:
 
     var(--page-bg);
-  color: var(--text-primary);
+  color: var(--Branco);
 }
 
 html[data-page-loading='true'],
@@ -145,7 +137,7 @@ html[data-page-loading='true'] .page-shell {
   place-items: center;
   padding: 1.5rem;
   background: #000;
-  color: var(--text-primary);
+  color: var(--Branco);
   transition: opacity 0.55s ease, visibility 0.55s ease;
 }
 
@@ -183,7 +175,7 @@ a {
 
 ::selection {
   background: rgba(0, 111, 255, 0.28);
-  color: var(--text-primary);
+  color: var(--Branco);
 }
 
 @theme inline {

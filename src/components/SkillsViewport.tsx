@@ -163,7 +163,7 @@ export default function SkillsViewport() {
     <section
       data-skills-viewport
       ref={sectionRef}
-      className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--skill-blue)]"
+      className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--Azul)]"
     >
       <ShaderBackground isVisible={isViewportVisible} reduceMotion={reduceMotion} />
 
@@ -176,7 +176,7 @@ export default function SkillsViewport() {
       />
 
       <div className="pointer-events-none absolute left-5 top-5 z-30 rounded-2xl md:left-8 md:top-8">
-        <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-[var(--text-primary)]">
+        <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-[var(--Branco)]">
           {__('MY SKILLS')}
         </p>
       </div>
@@ -193,8 +193,8 @@ export default function SkillsViewport() {
                 className={[
                   'min-w-[8.8rem] rounded-full border px-4 py-1.5 text-center text-[0.68rem] tracking-[0.14em] transition-colors cursor-none',
                   isActive
-                    ? 'border-[var(--text-primary)] bg-[var(--text-primary)] font-bold text-[color:var(--page-bg)]'
-                    : 'border-[var(--text-primary)] bg-transparent text-[var(--text-primary)] hover:bg-[var(--surface-hover)]',
+                    ? 'border-[var(--Branco)] bg-[var(--Branco)] font-bold text-[color:var(--page-bg)]'
+                    : 'border-[var(--Branco)] bg-transparent text-[var(--Branco)] hover:bg-[var(--surface-hover)]',
                 ].join(' ')}
                 type="button"
               >
@@ -208,12 +208,12 @@ export default function SkillsViewport() {
       {detailsVisible ? (
         <div className="absolute bottom-5 left-5 z-30 max-w-[19rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">
-            <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--text-primary)]">
+            <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--Branco)]">
               {__('Active 3D scene')}
             </p>
             <button
               aria-label={__('Hide details')}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[var(--surface-softer)] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[var(--surface-softer)] text-[var(--Branco)] transition hover:bg-[var(--surface-soft)]"
               onClick={() => setDetailsVisible(false)}
               type="button"
             >
@@ -221,7 +221,7 @@ export default function SkillsViewport() {
             </button>
           </div>
 
-          <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]">
+          <p className="mt-2 text-sm leading-6 text-[var(--Branco)]">
             {__(
               'The central placeholder will be replaced by your final model. For now, the focus is structuring the viewport, grid, camera, and background.',
             )}
@@ -230,7 +230,7 @@ export default function SkillsViewport() {
       ) : (
         <button
           aria-label={__('Show details')}
-          className="absolute bottom-5 left-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] text-[var(--text-primary)] shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:bg-[var(--surface-soft)] md:bottom-8 md:left-8"
+          className="absolute bottom-5 left-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] text-[var(--Branco)] shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:bg-[var(--surface-soft)] md:bottom-8 md:left-8"
           onClick={() => setDetailsVisible(true)}
           type="button"
         >

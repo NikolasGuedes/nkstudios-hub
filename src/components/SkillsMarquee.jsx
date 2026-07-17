@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 import LogoLoop from './LogoLoop.jsx';
-import ShaderBackground from './ShaderBackground';
 import { __, useLocale } from '../lib/i18n';
 
 const CATEGORIES = [
@@ -14,21 +13,53 @@ const CATEGORIES = [
   { id: 'design', labelKey: 'UI/UX DESIGNER', items: ['FIGMA', 'SPLINE'] }
 ];
 
-function renderMarqueeItem(item) {
+function renderBackgroundItem(item) {
   return (
-    <span className="flex items-center gap-8 text-[clamp(3.5rem,9vw,9rem)] font-extrabold uppercase leading-none text-[var(--text-primary)]">
+    <span className="flex items-center gap-10 text-[clamp(12rem,100vh,80rem)] font-extrabold uppercase leading-none text-white/10">
       {item}
       <span aria-hidden="true">-</span>
     </span>
   );
 }
 
+function renderForegroundItem(item) {
+  return (
+    <span className="flex items-center gap-8 text-[clamp(3.5rem,100vh,20rem)] font-extrabold uppercase leading-none text-[var(--Branco)]">
+      {item}
+      <span aria-hidden="true">-</span>
+    </span>
+  );
+}
+
+const CATEGORY_FADE_MS = 220;
+
 export default function SkillsMarquee() {
   useLocale();
   const reduceMotion = useReducedMotion();
   const sectionRef = useRef(null);
+  const fadeTimeoutRef = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
   const [activeCategoryId, setActiveCategoryId] = useState('web');
+  const [isCategoryFading, setIsCategoryFading] = useState(false);
+
+  const handleSelectCategory = id => {
+    if (id === activeCategoryId) return;
+
+    window.clearTimeout(fadeTimeoutRef.current);
+
+    if (reduceMotion) {
+      setActiveCategoryId(id);
+      return;
+    }
+
+    setIsCategoryFading(true);
+    fadeTimeoutRef.current = window.setTimeout(() => {
+      setActiveCategoryId(id);
+      setIsCategoryFading(false);
+    }, CATEGORY_FADE_MS);
+  };
+
+  useEffect(() => () => window.clearTimeout(fadeTimeoutRef.current), []);
 
   useEffect(() => {
     const node = sectionRef.current;
@@ -57,36 +88,38 @@ export default function SkillsMarquee() {
 
   return (
     <div ref={sectionRef} className="relative h-full w-full overflow-hidden">
-      <ShaderBackground isVisible={isVisible} reduceMotion={reduceMotion} />
-
-      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-6">
+      <div
+        className="absolute inset-0 z-10 transition-opacity ease-out"
+        style={{
+          opacity: isCategoryFading ? 0 : 1,
+          transitionDuration: reduceMotion ? '0ms' : `${CATEGORY_FADE_MS}ms`
+        }}
+      >
         {isVisible ? (
-          <div
-            key={activeCategoryId}
-            className="contents"
-            style={reduceMotion ? undefined : { animation: 'skills-marquee-fade 0.5s ease' }}
-          >
-            <LogoLoop
-              logos={activeCategory.items}
-              direction="left"
-              speed={55}
-              gap={48}
-              pauseOnHover={false}
-              renderItem={renderMarqueeItem}
-              ariaLabel={__(activeCategory.labelKey)}
-            />
-            <div aria-hidden="true">
+          <>
+            <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+              <LogoLoop
+                logos={activeCategory.items}
+                direction="left"
+                speed={30}
+                gap={64}
+                pauseOnHover={false}
+                renderItem={renderBackgroundItem}
+                ariaLabel=""
+              />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
               <LogoLoop
                 logos={activeCategory.items}
                 direction="right"
                 speed={55}
                 gap={48}
                 pauseOnHover={false}
-                renderItem={renderMarqueeItem}
+                renderItem={renderForegroundItem}
                 ariaLabel={__(activeCategory.labelKey)}
               />
             </div>
-          </div>
+          </>
         ) : null}
       </div>
 
@@ -98,12 +131,12 @@ export default function SkillsMarquee() {
             <button
               key={category.id}
               type="button"
-              onClick={() => setActiveCategoryId(category.id)}
+              onClick={() => handleSelectCategory(category.id)}
               className={[
                 'rounded-full border px-6 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.14em] transition',
                 isActive
-                  ? 'border-[var(--text-primary)] bg-[var(--text-primary)] text-[color:var(--page-bg)]'
-                  : 'border-[var(--text-primary)] bg-transparent text-[var(--text-primary)] hover:bg-[var(--surface-softer)]'
+                  ? 'border-[var(--Branco)] bg-[var(--Branco)] text-[color:var(--page-bg)]'
+                  : 'border-[var(--Branco)] bg-transparent text-[var(--Branco)] hover:bg-[var(--surface-softer)]'
               ].join(' ')}
             >
               {__(category.labelKey)}
