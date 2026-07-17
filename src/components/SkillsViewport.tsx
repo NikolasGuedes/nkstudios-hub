@@ -8,12 +8,6 @@ import { __, useLocale } from '../lib/i18n';
 import { CursorFollower } from './ui/cursor-follower';
 import type { Mesh } from 'three';
 
-const tabs = [
-  { id: 'modelagem3d', label: '3D MODELING' },
-  { id: 'jogos', label: 'GAMES' },
-  { id: 'design', label: 'DESIGN' },
-] as const;
-
 const SCENE_COLORS = {
   directional: '#ffffff',
   emissive: '#8cc8ff',
@@ -112,7 +106,6 @@ function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
 export default function SkillsViewport() {
   useLocale();
 
-  const activeTab = 'modelagem3d';
   const reduceMotion = useReducedMotion();
   const [detailsVisible, setDetailsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
@@ -212,36 +205,6 @@ export default function SkillsViewport() {
         hoverIcon={<MousePointer2 size={16} strokeWidth={2.2} />}
         interactiveSelector='button, [data-cursor-hover]'
       />
-
-      <div className="pointer-events-none absolute left-5 top-5 z-30 rounded-2xl md:left-8 md:top-8">
-        <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-[var(--text-primary)]">
-          {__('MY SKILLS')}
-        </p>
-      </div>
-
-      <div className="absolute right-5 top-5 z-30  p-4 md:right-8 md:top-8 md:p-5">
-        <div className="flex flex-col gap-3">
-          {tabs.map((tab) => {
-            const isActive = tab.id === activeTab;
-
-            return (
-              <button
-                data-cursor-hover
-                key={tab.id}
-                className={[
-                  'min-w-[8.8rem] rounded-full border px-4 py-1.5 text-center text-[0.68rem] tracking-[0.14em] transition-colors cursor-none',
-                  isActive
-                    ? 'border-[var(--text-primary)] bg-[var(--text-primary)] font-bold text-[color:var(--page-bg)]'
-                    : 'border-[var(--text-primary)] bg-transparent text-[var(--text-primary)] hover:bg-[var(--surface-hover)]',
-                ].join(' ')}
-                type="button"
-              >
-                {__(tab.label)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {detailsVisible ? (
         <div className="absolute bottom-5 left-5 z-30 max-w-[19rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
