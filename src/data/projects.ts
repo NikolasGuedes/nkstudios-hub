@@ -19,9 +19,22 @@ export const PROJECTS: Project[] = [
       '/projects_assets/imgs/Shiryu_03.png'
     ],
     LINK: 'https://shiryu.nkstudios.dev/',
-    DESCRIPTION:
-      'SHIRYU is a monochromatic web experience built around a bold visual identity, layered artwork, and an immersive presentation.',
+    DESCRIPTION: 'A website created in tribute to my dog.',
     COLOR: '#D9D9D9'
+  },
+  {
+    ID: 'lifeeasy',
+    NAME: 'LIFEEASY',
+    VIDEO: '/projects_assets/videos/Video_Lifeeasy.webm',
+    IMAGES: [
+      '/projects_assets/imgs/Lifeeasy_01.png',
+      '/projects_assets/imgs/Lifeeasy_02.png',
+      '/projects_assets/imgs/Lifeeasy_03.png'
+    ],
+    LINK: 'https://lifeeasy.com.br/',
+    DESCRIPTION:
+      "A company website offering web services and solutions focused on making users' lives easier.",
+    COLOR: '#006FFF'
   }
 ];
 

@@ -112,14 +112,9 @@ export default function ProjectsShowcase() {
     setIsModalOpen(false);
   };
 
-  const selectNextProject = () => {
-    const nextProjects = getRandomProjects(activeProject.ID, 1);
-
-    if (nextProjects[0]) {
-      setActiveProjectId(nextProjects[0].ID);
-    } else {
-      setProgressRun(currentRun => currentRun + 1);
-    }
+  const refreshSuggestions = () => {
+    setSuggestions(getRandomProjects(activeProject.ID, 2));
+    setProgressRun(currentRun => currentRun + 1);
   };
 
   return (
@@ -138,6 +133,8 @@ export default function ProjectsShowcase() {
               className="absolute inset-0 h-full w-full object-cover"
               autoPlay
               controls
+              controlsList="nodownload noplaybackrate noremoteplayback"
+              disablePictureInPicture
               loop
               muted
               playsInline
@@ -280,7 +277,7 @@ export default function ProjectsShowcase() {
               <span
                 key={`${activeProject.ID}-${progressRun}`}
                 className="project-progress block h-full bg-black"
-                onAnimationEnd={selectNextProject}
+                onAnimationEnd={refreshSuggestions}
                 style={{
                   animationDuration: `${PROJECT_DURATION_MS}ms`,
                   animationPlayState: isModalOpen ? 'paused' : 'running',
@@ -383,6 +380,12 @@ export default function ProjectsShowcase() {
 
         @media (prefers-reduced-motion: reduce) {
           .project-progress { animation: none; }
+        }
+
+        video::-webkit-media-controls-mute-button,
+        video::-webkit-media-controls-volume-slider,
+        video::-webkit-media-controls-overflow-button {
+          display: none !important;
         }
       `}</style>
     </section>
