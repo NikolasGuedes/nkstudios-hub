@@ -1,12 +1,13 @@
 import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Images, Play, X } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PROJECTS, getProjectTextColor } from '../data/projects';
 import { __, useLocale } from '../lib/i18n';
 import ProjectSuggestions from './ProjectSuggestions';
 
-const PROJECT_DURATION_MS = 12000;
+const PROJECT_DURATION_MS = 7000;
 const IMAGE_DURATION_MS = 4500;
+const SUGGESTIONS_FADE_MS = 240;
 
 function getRandomProjects(activeProjectId: string, amount: number) {
   const availableProjects = PROJECTS.filter(project => project.ID !== activeProjectId);
@@ -35,6 +36,8 @@ export default function ProjectsShowcase() {
   );
   const [progressRun, setProgressRun] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSuggestionsFading, setIsSuggestionsFading] = useState(false);
+  const suggestionsFadeTimeoutRef = useRef<number | null>(null);
 
   const activeProject = useMemo(
     () => PROJECTS.find(project => project.ID === activeProjectId) ?? PROJECTS[0],
@@ -44,9 +47,15 @@ export default function ProjectsShowcase() {
   useEffect(() => {
     if (!activeProject) return;
 
+    if (suggestionsFadeTimeoutRef.current !== null) {
+      window.clearTimeout(suggestionsFadeTimeoutRef.current);
+      suggestionsFadeTimeoutRef.current = null;
+    }
+
     setMediaMode(activeProject.VIDEO ? 'video' : 'images');
     setActiveImageIndex(0);
     setSuggestions(getRandomProjects(activeProject.ID, 2));
+    setIsSuggestionsFading(false);
     setProgressRun(currentRun => currentRun + 1);
   }, [activeProject]);
 
@@ -66,6 +75,15 @@ export default function ProjectsShowcase() {
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isModalOpen]);
+
+  useEffect(
+    () => () => {
+      if (suggestionsFadeTimeoutRef.current !== null) {
+        window.clearTimeout(suggestionsFadeTimeoutRef.current);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     if (
@@ -113,8 +131,30 @@ export default function ProjectsShowcase() {
   };
 
   const refreshSuggestions = () => {
-    setSuggestions(getRandomProjects(activeProject.ID, 2));
-    setProgressRun(currentRun => currentRun + 1);
+    const updateSuggestions = () => {
+      const nextSuggestions = getRandomProjects(activeProject.ID, 2);
+      const currentOrder = suggestions.map(project => project.ID).join(':');
+      const nextOrder = nextSuggestions.map(project => project.ID).join(':');
+
+      if (nextOrder === currentOrder && nextSuggestions.length > 1) {
+        nextSuggestions.reverse();
+      }
+
+      setSuggestions(nextSuggestions);
+      setProgressRun(currentRun => currentRun + 1);
+    };
+
+    if (reduceMotion) {
+      updateSuggestions();
+      return;
+    }
+
+    setIsSuggestionsFading(true);
+    suggestionsFadeTimeoutRef.current = window.setTimeout(() => {
+      updateSuggestions();
+      setIsSuggestionsFading(false);
+      suggestionsFadeTimeoutRef.current = null;
+    }, SUGGESTIONS_FADE_MS);
   };
 
   return (
@@ -253,7 +293,17 @@ export default function ProjectsShowcase() {
 
         <div className="flex min-h-[38rem] flex-col px-5 py-8 sm:px-8 sm:py-10 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-[clamp(2rem,3.2vw,4.5rem)] lg:py-[clamp(1.75rem,3.5vh,3.5rem)]">
           <div>
-            <h2 className="text-[clamp(2.7rem,4.2vw,5.5rem)] font-bold uppercase text-center leading-[0.88] tracking-[-0.045em]">
+            <h2
+              className="max-w-full text-center font-bold uppercase leading-[0.88] tracking-[-0.045em]"
+              style={{
+                fontSize:
+                  activeProject.NAME.length > 10
+                    ? 'clamp(2rem, 2.8vw, 3.5rem)'
+                    : activeProject.NAME.length > 8
+                      ? 'clamp(2.25rem, 3.4vw, 4.25rem)'
+                      : 'clamp(2.7rem, 4.2vw, 5.5rem)'
+              }}
+            >
               {activeProject.NAME}
             </h2>
           </div>
@@ -265,7 +315,16 @@ export default function ProjectsShowcase() {
           </div>
 
           <div className="space-y-6">
-            <ProjectSuggestions projects={suggestions} onSelect={selectProject} />
+            <div
+              className="transition-[opacity,transform] ease-out motion-reduce:transition-none"
+              style={{
+                opacity: isSuggestionsFading ? 0 : 1,
+                transform: isSuggestionsFading ? 'translateY(0.5rem)' : 'translateY(0)',
+                transitionDuration: `${SUGGESTIONS_FADE_MS}ms`
+              }}
+            >
+              <ProjectSuggestions projects={suggestions} onSelect={selectProject} />
+            </div>
 
             <div
               className="h-3 overflow-hidden bg-[color:var(--Branco)]/75"

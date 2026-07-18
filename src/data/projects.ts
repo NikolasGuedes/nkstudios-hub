@@ -49,6 +49,19 @@ export const PROJECTS: Project[] = [
     DESCRIPTION:
       'A landing page created for a company specializing in data analytics and artificial intelligence solutions.',
     COLOR: '#F9A01B'
+  },
+  {
+    ID: 'nkportfolio',
+    NAME: 'NKPORTFOLIO',
+    VIDEO: '/projects_assets/videos/Video_NkPortfolio.webm',
+    IMAGES: [
+      '/projects_assets/imgs/NkPortfolio_01.png',
+      '/projects_assets/imgs/NkPortfolio_02.png',
+      '/projects_assets/imgs/NkPortfolio_03.png'
+    ],
+    LINK: 'https://nikolasguedes.github.io/portfolio_nikolasguedes/',
+    DESCRIPTION: 'My former portfolio website.',
+    COLOR: '#200055'
   }
 ];
 
