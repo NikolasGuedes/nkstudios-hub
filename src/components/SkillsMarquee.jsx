@@ -7,28 +7,36 @@ const CATEGORIES = [
   {
     id: 'web',
     labelKey: 'WEB DEVELOPER',
-    items: ['VUE', 'REACT', 'PHP', 'LARAVEL', 'MOTION', 'TAILWIND', 'ASTRO']
+    items: ['VUE', 'REACT', 'LARAVEL', 'MOTION', 'TAILWIND', 'ASTRO']
   },
   { id: 'game', labelKey: 'GAME DEVELOPER', items: ['BLENDER', 'UNITY', 'C#'] },
-  { id: 'design', labelKey: 'UI/UX DESIGNER', items: ['FIGMA', 'SPLINE'] }
+  { id: 'design', labelKey: 'UI/UX DESIGNER', items: ['FIGMA', 'PHOTOSHOP', 'ILLUSTRATOR'] }
 ];
 
-function renderBackgroundItem(item) {
-  return (
-    <span className="flex items-center gap-10 text-[clamp(12rem,100vh,80rem)] font-extrabold uppercase leading-none text-white/10">
-      {item}
-      <span aria-hidden="true">-</span>
-    </span>
-  );
-}
+const SKILL_LOGOS = {
+  VUE: '/images/Skills_logos/vue.svg',
+  REACT: '/images/Skills_logos/react.svg',
+  LARAVEL: '/images/Skills_logos/laravel.svg',
+  MOTION: '/images/Skills_logos/motion.svg',
+  TAILWIND: '/images/Skills_logos/tailwindcss.svg',
+  ASTRO: '/images/Skills_logos/astro.svg',
+  BLENDER: '/images/Skills_logos/blender.svg',
+  UNITY: '/images/Skills_logos/unity.svg',
+  'C#': '/images/Skills_logos/csharp.svg',
+  FIGMA: '/images/Skills_logos/figma.svg',
+  PHOTOSHOP: '/images/Skills_logos/photoshop.svg',
+  ILLUSTRATOR: '/images/Skills_logos/illustrator.svg'
+};
 
 function renderForegroundItem(item, _key, { isHighlighted } = {}) {
+  const logoSrc = SKILL_LOGOS[item];
+
   return (
     <span className="relative flex items-center gap-8 text-[clamp(3.5rem,100vh,10rem)] font-extrabold uppercase leading-none text-[var(--Branco)]">
       <span className="relative isolate inline-flex items-center justify-center">
-        {isHighlighted ? (
+        {isHighlighted && logoSrc ? (
           <img
-            src="/images/Skills_logos/vue.svg"
+            src={logoSrc}
             alt=""
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-1/2 -z-10 max-w-none -translate-x-1/2 -translate-y-1/2 opacity-70"
@@ -108,17 +116,6 @@ export default function SkillsMarquee() {
       >
         {isVisible ? (
           <>
-            <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
-              <LogoLoop
-                logos={activeCategory.items}
-                direction="left"
-                speed={30}
-                gap={64}
-                pauseOnHover={false}
-                renderItem={renderBackgroundItem}
-                ariaLabel=""
-              />
-            </div>
             <div className="absolute inset-0 flex items-center justify-center">
               <LogoLoop
                 logos={activeCategory.items}
