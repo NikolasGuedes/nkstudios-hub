@@ -7,7 +7,7 @@ const CATEGORIES = [
   {
     id: 'web',
     labelKey: 'WEB DEVELOPER',
-    items: ['VUE', 'REACT', 'LARAVEL', 'MOTION', 'TAILWIND', 'ASTRO']
+    items: ['VUE', 'REACT', 'LARAVEL','TAILWIND', 'ASTRO']
   },
   { id: 'game', labelKey: 'GAME DEVELOPER', items: ['BLENDER', 'UNITY', 'C#'] },
   { id: 'design', labelKey: 'UI/UX DESIGNER', items: ['FIGMA', 'PHOTOSHOP', 'ILLUSTRATOR'] }
@@ -17,7 +17,6 @@ const SKILL_LOGOS = {
   VUE: '/images/Skills_logos/vue.svg',
   REACT: '/images/Skills_logos/react.svg',
   LARAVEL: '/images/Skills_logos/laravel.svg',
-  MOTION: '/images/Skills_logos/motion.svg',
   TAILWIND: '/images/Skills_logos/tailwindcss.svg',
   ASTRO: '/images/Skills_logos/astro.svg',
   BLENDER: '/images/Skills_logos/blender.svg',

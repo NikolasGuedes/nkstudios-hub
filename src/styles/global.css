@@ -173,6 +173,14 @@ a {
   text-decoration: none;
 }
 
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 ::selection {
   background: rgba(0, 111, 255, 0.28);
   color: var(--Branco);

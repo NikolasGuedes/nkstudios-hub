@@ -22,7 +22,7 @@
   "The central placeholder will be replaced by your final model. For now, the focus is structuring the viewport, grid, camera, and background.": "O placeholder central será substituído pelo seu modelo final. Por agora, o foco é estruturar a viewport, a grade, a câmera e o fundo.",
   "Preparing the experience": "Preparando a experiência",
   "My name is": "Meu nome é",
-  "I'm a Junior Full Stack Developer with hands-on experience building web applications and websites using PHP, Laravel, Vue.js, and React.js. I work on implementing features, data modeling, and REST API integration, always learning and evolving as a developer. I'm also passionate about game development, combining programming logic and creativity to build interactive experiences.": "Sou desenvolvedor Full Stack Júnior, com experiência no desenvolvimento de aplicações e sites utilizando PHP, Laravel, Vue.js e React.js. Atuo na implementação de funcionalidades, modelagem de dados e integração de APIs REST, sempre buscando aprender e evoluir como desenvolvedor. Também tenho paixão por desenvolvimento de jogos, unindo lógica de programação e criatividade para criar experiências interativas.",
+  "I'm a Full Stack Developer with hands-on experience building web applications and websites using PHP, Laravel, Vue.js, and React.js. I work on implementing features, data modeling, and REST API integration, always learning and evolving as a developer. I'm also passionate about game development, combining programming logic and creativity to build interactive experiences.": "Sou desenvolvedor Full Stack, com experiência no desenvolvimento de aplicações e sites utilizando PHP, Laravel, Vue.js e React.js. Atuo na implementação de funcionalidades, modelagem de dados e integração de APIs REST, sempre buscando aprender e evoluir como desenvolvedor. Também tenho paixão por desenvolvimento de jogos, unindo lógica de programação e criatividade para criar experiências interativas.",
   "DOWNLOAD CV": "BAIXAR CV",
   "YEARS OF WEB DEVELOPMENT EXPERIENCE": "ANOS DE EXPERIÊNCIA EM DESENVOLVIMENTO WEB",
   "YEARS OF GRAPHIC DESIGN EXPERIENCE": "ANOS DE EXPERIÊNCIA EM DESIGN GRÁFICO",
@@ -35,5 +35,18 @@
   "Key achievements": "Principais conquistas",
   "WEB DEVELOPER": "DESENVOLVEDOR WEB",
   "GAME DEVELOPER": "DESENVOLVEDOR DE JOGOS",
-  "UI/UX DESIGNER": "DESIGNER UI/UX"
+  "UI/UX DESIGNER": "DESIGNER UI/UX",
+  "Suggested projects": "Projetos sugeridos",
+  "Project image": "Imagem do projeto",
+  "Media coming soon": "Mídia em breve",
+  "Video": "Vídeo",
+  "Images": "Imagens",
+  "Visit website": "Visitar site",
+  "Show image": "Mostrar imagem",
+  "Featured project": "Projeto em destaque",
+  "Time until next project": "Tempo até o próximo projeto",
+  "View all": "Ver todos",
+  "All projects": "Todos os projetos",
+  "Close projects": "Fechar projetos",
+  "SHIRYU is a monochromatic web experience built around a bold visual identity, layered artwork, and an immersive presentation.": "SHIRYU é uma experiência web monocromática construída em torno de uma identidade visual marcante, artes em camadas e uma apresentação imersiva."
 }
