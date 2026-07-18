@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, Images, Play, X } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Images, Play, X } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { PROJECTS, getProjectTextColor } from '../data/projects';
@@ -6,6 +6,7 @@ import { __, useLocale } from '../lib/i18n';
 import ProjectSuggestions from './ProjectSuggestions';
 
 const PROJECT_DURATION_MS = 12000;
+const IMAGE_DURATION_MS = 4500;
 
 function getRandomProjects(activeProjectId: string, amount: number) {
   const availableProjects = PROJECTS.filter(project => project.ID !== activeProjectId);
@@ -28,6 +29,7 @@ export default function ProjectsShowcase() {
   const [activeProjectId, setActiveProjectId] = useState(PROJECTS[0]?.ID ?? '');
   const [mediaMode, setMediaMode] = useState<'video' | 'images'>('images');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [imageRotationRun, setImageRotationRun] = useState(0);
   const [suggestions, setSuggestions] = useState(() =>
     PROJECTS.filter(project => project.ID !== activeProjectId).slice(0, 2)
   );
@@ -65,12 +67,40 @@ export default function ProjectsShowcase() {
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    if (
+      reduceMotion ||
+      mediaMode !== 'images' ||
+      !activeProject ||
+      activeProject.IMAGES.length <= 1
+    ) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveImageIndex(currentIndex =>
+        (currentIndex + 1) % activeProject.IMAGES.length
+      );
+    }, IMAGE_DURATION_MS);
+
+    return () => window.clearInterval(intervalId);
+  }, [activeProject, imageRotationRun, mediaMode, reduceMotion]);
+
   if (!activeProject) return null;
 
   const textColor = getProjectTextColor(activeProject.COLOR);
   const activeImage = activeProject.IMAGES[activeImageIndex] ?? activeProject.IMAGES[0];
   const hasVideo = Boolean(activeProject.VIDEO);
   const hasImages = activeProject.IMAGES.length > 0;
+
+  const selectImage = (imageIndex: number) => {
+    const totalImages = activeProject.IMAGES.length;
+
+    if (totalImages <= 1) return;
+
+    setActiveImageIndex((imageIndex + totalImages) % totalImages);
+    setImageRotationRun(currentRun => currentRun + 1);
+  };
 
   const selectProject = (projectId: string) => {
     if (projectId === activeProject.ID) {
@@ -113,26 +143,43 @@ export default function ProjectsShowcase() {
               playsInline
             />
           ) : activeImage ? (
-            <img
-              key={activeImage}
-              src={activeImage}
-              alt={`${activeProject.NAME} — ${__('Project image')}`}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
+            activeProject.IMAGES.map((image, index) => {
+              const isActiveImage = index === activeImageIndex;
+
+              return (
+                <img
+                  key={image}
+                  src={image}
+                  alt={isActiveImage ? `${activeProject.NAME} — ${__('Project image')}` : ''}
+                  aria-hidden={!isActiveImage}
+                  className="absolute inset-0 h-full w-full object-cover transition-[opacity,transform] duration-700 ease-out motion-reduce:transition-none"
+                  style={{
+                    opacity: isActiveImage ? 1 : 0,
+                    transform: isActiveImage ? 'scale(1)' : 'scale(1.015)'
+                  }}
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                />
+              );
+            })
           ) : (
-            <div className="absolute inset-0 grid place-items-center bg-black text-sm uppercase tracking-[0.2em] text-white/55">
+            <div className="absolute inset-0 grid place-items-center bg-black text-sm uppercase tracking-[0.2em] text-[color:var(--Branco)]/55">
               {__('Media coming soon')}
             </div>
           )}
 
-          <div className="absolute left-4 top-4 z-10 flex rounded-full bg-black/55 p-1 text-white shadow-xl backdrop-blur-xl sm:left-6 sm:top-6">
+          <div className="absolute left-4 top-4 z-10 flex rounded-full bg-black/55 p-1 text-[var(--Branco)] shadow-xl backdrop-blur-xl sm:left-6 sm:top-6">
             <button
               type="button"
               onClick={() => setMediaMode('video')}
               disabled={!hasVideo}
               aria-pressed={mediaMode === 'video'}
               className="flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-35 sm:text-sm"
-              style={{ backgroundColor: mediaMode === 'video' ? 'rgba(255,255,255,0.2)' : undefined }}
+              style={{
+                backgroundColor:
+                  mediaMode === 'video'
+                    ? 'color-mix(in srgb, var(--Branco) 20%, transparent)'
+                    : undefined
+              }}
             >
               <Play aria-hidden="true" size={15} fill="currentColor" />
               {__('Video')}
@@ -143,7 +190,12 @@ export default function ProjectsShowcase() {
               disabled={!hasImages}
               aria-pressed={mediaMode === 'images'}
               className="flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-medium transition disabled:cursor-not-allowed disabled:opacity-35 sm:text-sm"
-              style={{ backgroundColor: mediaMode === 'images' ? 'rgba(255,255,255,0.2)' : undefined }}
+              style={{
+                backgroundColor:
+                  mediaMode === 'images'
+                    ? 'color-mix(in srgb, var(--Branco) 20%, transparent)'
+                    : undefined
+              }}
             >
               <Images aria-hidden="true" size={16} />
               {__('Images')}
@@ -155,7 +207,7 @@ export default function ProjectsShowcase() {
               href={activeProject.LINK}
               target="_blank"
               rel="noreferrer noopener"
-              className="absolute right-4 top-4 z-10 flex items-center gap-3 rounded-full bg-black/55 py-1.5 pl-5 pr-1.5 text-sm font-medium text-white shadow-xl backdrop-blur-xl transition hover:bg-black/70 sm:right-6 sm:top-6 sm:text-base"
+              className="absolute right-4 top-4 z-10 flex items-center gap-3 rounded-full bg-black/55 py-1.5 pl-5 pr-1.5 text-sm font-medium text-[var(--Branco)] shadow-xl backdrop-blur-xl transition hover:bg-black/70 sm:right-6 sm:top-6 sm:text-base"
             >
               {__('Visit website')}
               <span className="grid h-10 w-10 place-items-center rounded-full bg-[var(--Branco)] text-black">
@@ -165,15 +217,36 @@ export default function ProjectsShowcase() {
           ) : null}
 
           {mediaMode === 'images' && activeProject.IMAGES.length > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => selectImage(activeImageIndex - 1)}
+                aria-label={__('Previous image')}
+                className="absolute left-3 top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-[color:var(--Branco)]/20 bg-black/55 text-[var(--Branco)] shadow-xl backdrop-blur-xl transition hover:scale-105 hover:bg-black/75 sm:left-5 sm:h-14 sm:w-14"
+              >
+                <ChevronLeft aria-hidden="true" size={30} strokeWidth={1.7} />
+              </button>
+              <button
+                type="button"
+                onClick={() => selectImage(activeImageIndex + 1)}
+                aria-label={__('Next image')}
+                className="absolute right-3 top-1/2 z-10 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full border border-[color:var(--Branco)]/20 bg-black/55 text-[var(--Branco)] shadow-xl backdrop-blur-xl transition hover:scale-105 hover:bg-black/75 sm:right-5 sm:h-14 sm:w-14"
+              >
+                <ChevronRight aria-hidden="true" size={30} strokeWidth={1.7} />
+              </button>
+            </>
+          ) : null}
+
+          {mediaMode === 'images' && activeProject.IMAGES.length > 1 ? (
             <div className="absolute inset-x-0 bottom-5 z-10 flex justify-center gap-2">
               {activeProject.IMAGES.map((image, index) => (
                 <button
                   key={image}
                   type="button"
-                  onClick={() => setActiveImageIndex(index)}
+                  onClick={() => selectImage(index)}
                   aria-label={`${__('Show image')} ${index + 1}`}
                   aria-pressed={activeImageIndex === index}
-                  className="h-2.5 rounded-full bg-white shadow transition-all"
+                  className="h-2.5 rounded-full bg-[var(--Branco)] shadow transition-all"
                   style={{ width: activeImageIndex === index ? '2.25rem' : '0.625rem', opacity: activeImageIndex === index ? 1 : 0.55 }}
                 />
               ))}
@@ -198,7 +271,7 @@ export default function ProjectsShowcase() {
             <ProjectSuggestions projects={suggestions} onSelect={selectProject} />
 
             <div
-              className="h-3 overflow-hidden bg-white/75"
+              className="h-3 overflow-hidden bg-[color:var(--Branco)]/75"
               role="progressbar"
               aria-label={__('Time until next project')}
               aria-valuemin={0}
@@ -243,11 +316,11 @@ export default function ProjectsShowcase() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="all-projects-title"
-            className="relative my-auto w-full max-w-6xl rounded-[2rem] border border-white/15 bg-[#0a0a0a] p-5 text-[var(--Branco)] shadow-2xl sm:p-8"
+            className="relative my-auto w-full max-w-6xl rounded-[2rem] border border-[color:var(--Branco)]/15 bg-[#0a0a0a] p-5 text-[var(--Branco)] shadow-2xl sm:p-8"
           >
             <div className="mb-8 flex items-center justify-between gap-5">
               <div>
-                <p className="mb-2 text-[0.65rem] uppercase tracking-[0.25em] text-white/50">
+                <p className="mb-2 text-[0.65rem] uppercase tracking-[0.25em] text-[color:var(--Branco)]/50">
                   NK Studios
                 </p>
                 <h2 id="all-projects-title" className="text-3xl font-semibold uppercase sm:text-5xl">
@@ -258,7 +331,7 @@ export default function ProjectsShowcase() {
                 type="button"
                 onClick={() => setIsModalOpen(false)}
                 aria-label={__('Close projects')}
-                className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/20 transition hover:bg-white/10"
+                className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[color:var(--Branco)]/20 transition hover:bg-[color:var(--Branco)]/10"
               >
                 <X aria-hidden="true" size={22} />
               </button>
@@ -270,7 +343,7 @@ export default function ProjectsShowcase() {
                   key={project.ID}
                   type="button"
                   onClick={() => selectProject(project.ID)}
-                  className="group relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-white/10 text-left"
+                  className="group relative aspect-[4/3] overflow-hidden rounded-[1.5rem] border border-[color:var(--Branco)]/10 text-left"
                   style={{ backgroundColor: project.COLOR }}
                 >
                   {project.IMAGES[0] ? (
@@ -282,9 +355,9 @@ export default function ProjectsShowcase() {
                     />
                   ) : null}
                   <span className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
-                  <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 text-white">
+                  <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 text-[var(--Branco)]">
                     <span className="text-2xl font-semibold uppercase">{project.NAME}</span>
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-black">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--Branco)] text-black">
                       <ArrowRight aria-hidden="true" size={20} />
                     </span>
                   </span>

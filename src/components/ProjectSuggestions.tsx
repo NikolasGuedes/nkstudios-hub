@@ -36,7 +36,7 @@ export default function ProjectSuggestions({ projects, onSelect }: ProjectSugges
               />
             ) : null}
             <span className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/30 to-transparent" />
-            <span className="relative z-10 flex min-w-0 flex-1 items-center px-5 py-4 text-sm font-semibold uppercase tracking-[0.16em] text-white">
+            <span className="relative z-10 flex min-w-0 flex-1 items-center px-5 py-4 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--Branco)]">
               {project.NAME}
             </span>
             <span className="relative z-10 m-3 flex aspect-square w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--Branco)] text-black transition-transform duration-300 group-hover:translate-x-0.5">

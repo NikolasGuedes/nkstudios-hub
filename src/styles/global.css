@@ -168,11 +168,6 @@ html[data-page-loading='true'] .page-shell {
   letter-spacing: -0.05em;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
 button:not(:disabled) {
   cursor: pointer;
 }
@@ -264,6 +259,11 @@ button:disabled {
 }
 
 @layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }

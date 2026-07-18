@@ -100,7 +100,7 @@ export function CursorFollower({
       style={{ opacity: isActive ? 1 : 0, transition: 'opacity 120ms ease' }}
     >
       <div
-        className="absolute rounded-full bg-white"
+        className="absolute rounded-full bg-[var(--Branco)]"
         style={{
           width: '8px',
           height: '8px',
@@ -111,7 +111,7 @@ export function CursorFollower({
       />
 
       <div
-        className="absolute flex items-center justify-center rounded-full border border-white bg-white/12 text-white backdrop-blur-md"
+        className="absolute flex items-center justify-center rounded-full border border-[var(--Branco)] bg-[color:var(--Branco)]/12 text-[var(--Branco)] backdrop-blur-md"
         style={{
           width: isHovering ? '40px' : '54px',
           height: isHovering ? '40px' : '54px',

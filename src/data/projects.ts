@@ -12,8 +12,12 @@ export const PROJECTS: Project[] = [
   {
     ID: 'shiryu',
     NAME: 'SHIRYU',
-    VIDEO: null,
-    IMAGES: ['/images/projects_assets/imgs/Shiryu.png'],
+    VIDEO: '/projects_assets/videos/Video_shiryu.webm',
+    IMAGES: [
+      '/projects_assets/imgs/Shiryu_01.png',
+      '/projects_assets/imgs/Shiryu_02.png',
+      '/projects_assets/imgs/Shiryu_03.png'
+    ],
     LINK: 'https://shiryu.nkstudios.dev/',
     DESCRIPTION:
       'SHIRYU is a monochromatic web experience built around a bold visual identity, layered artwork, and an immersive presentation.',
