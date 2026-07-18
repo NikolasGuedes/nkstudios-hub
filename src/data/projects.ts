@@ -62,6 +62,20 @@ export const PROJECTS: Project[] = [
     LINK: 'https://nikolasguedes.github.io/portfolio_nikolasguedes/',
     DESCRIPTION: 'My former portfolio website.',
     COLOR: '#200055'
+  },
+  {
+    ID: 'oli',
+    NAME: 'OLI',
+    VIDEO: '/projects_assets/videos/Video_OLI.webm',
+    IMAGES: [
+      '/projects_assets/imgs/OLI_01.jpg',
+      '/projects_assets/imgs/OLI_02.jpg',
+      '/projects_assets/imgs/OLI_03.jpg'
+    ],
+    LINK: 'https://store.steampowered.com/app/1794530/OLI/',
+    DESCRIPTION:
+      'OLI is a short 2D puzzle-platformer with a mysterious atmosphere. You play as a child who must escape from monsters while traveling through different locations in an inhospitable city.',
+    COLOR: '#000000'
   }
 ];
 
