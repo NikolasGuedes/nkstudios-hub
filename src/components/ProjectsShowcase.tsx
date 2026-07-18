@@ -253,7 +253,7 @@ export default function ProjectsShowcase() {
 
         <div className="flex min-h-[38rem] flex-col px-5 py-8 sm:px-8 sm:py-10 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:px-[clamp(2rem,3.2vw,4.5rem)] lg:py-[clamp(1.75rem,3.5vh,3.5rem)]">
           <div>
-            <h2 className="text-[clamp(2.7rem,4.2vw,5.5rem)] font-bold uppercase leading-[0.88] tracking-[-0.045em]">
+            <h2 className="text-[clamp(2.7rem,4.2vw,5.5rem)] font-bold uppercase text-center leading-[0.88] tracking-[-0.045em]">
               {activeProject.NAME}
             </h2>
           </div>
@@ -317,9 +317,6 @@ export default function ProjectsShowcase() {
           >
             <div className="mb-8 flex items-center justify-between gap-5">
               <div>
-                <p className="mb-2 text-[0.65rem] uppercase tracking-[0.25em] text-[color:var(--Branco)]/50">
-                  NK Studios
-                </p>
                 <h2 id="all-projects-title" className="text-3xl font-semibold uppercase sm:text-5xl">
                   {__('All projects')}
                 </h2>

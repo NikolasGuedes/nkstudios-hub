@@ -35,6 +35,20 @@ export const PROJECTS: Project[] = [
     DESCRIPTION:
       "A company website offering web services and solutions focused on making users' lives easier.",
     COLOR: '#006FFF'
+  },
+  {
+    ID: 'exatatech',
+    NAME: 'EXATATECH',
+    VIDEO: '/projects_assets/videos/Video_ExataTech.webm',
+    IMAGES: [
+      '/projects_assets/imgs/Exatatech_01.png',
+      '/projects_assets/imgs/Exatatech_02.png',
+      '/projects_assets/imgs/Exatatech_03.png'
+    ],
+    LINK: 'https://exata.it/',
+    DESCRIPTION:
+      'A landing page created for a company specializing in data analytics and artificial intelligence solutions.',
+    COLOR: '#F9A01B'
   }
 ];
 
