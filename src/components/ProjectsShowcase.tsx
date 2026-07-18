@@ -164,7 +164,7 @@ export default function ProjectsShowcase() {
             </div>
           )}
 
-          <div className="absolute left-4 top-4 z-10 flex rounded-full bg-black/55 p-1 text-[var(--Branco)] shadow-xl backdrop-blur-xl sm:left-6 sm:top-6">
+          <div className="absolute left-4 top-4 z-10 flex h-12 rounded-full bg-black/55 p-1 text-[var(--Branco)] shadow-xl backdrop-blur-xl sm:left-6 sm:top-6">
             <button
               type="button"
               onClick={() => setMediaMode('video')}
@@ -204,7 +204,7 @@ export default function ProjectsShowcase() {
               href={activeProject.LINK}
               target="_blank"
               rel="noreferrer noopener"
-              className="absolute right-4 top-4 z-10 flex items-center gap-3 rounded-full bg-black/55 py-1.5 pl-5 pr-1.5 text-sm font-medium text-[var(--Branco)] shadow-xl backdrop-blur-xl transition hover:bg-black/70 sm:right-6 sm:top-6 sm:text-base"
+              className="absolute right-4 top-4 z-10 flex h-12 items-center gap-3 rounded-full bg-black/55 py-1 pl-5 pr-1 text-sm font-medium text-[var(--Branco)] shadow-xl backdrop-blur-xl transition hover:bg-black/70 sm:right-6 sm:top-6 sm:text-base"
             >
               {__('Visit website')}
               <span className="grid h-10 w-10 place-items-center rounded-full bg-[var(--Branco)] text-black">

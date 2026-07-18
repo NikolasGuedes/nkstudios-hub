@@ -31,15 +31,14 @@ function renderForegroundItem(item, _key, { isHighlighted } = {}) {
   const logoSrc = SKILL_LOGOS[item];
 
   return (
-    <span className="relative flex items-center gap-8 text-[clamp(3.5rem,100vh,10rem)] font-extrabold uppercase leading-none text-[var(--Branco)]">
+    <span className="relative flex items-center gap-4 text-[clamp(2.25rem,16vw,4rem)] font-extrabold uppercase leading-none text-[var(--Branco)] sm:gap-8 sm:text-[clamp(3.5rem,100vh,10rem)]">
       <span className="relative isolate inline-flex items-center justify-center">
         {isHighlighted && logoSrc ? (
           <img
             src={logoSrc}
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 max-w-none -translate-x-1/2 -translate-y-1/2 opacity-70"
-            style={{ height: 'clamp(18rem, 68vh, 46rem)', width: 'auto' }}
+            className="skills-highlight-logo pointer-events-none absolute left-1/2 top-1/2 -z-10 max-w-none -translate-x-1/2 -translate-y-1/2 opacity-70"
           />
         ) : null}
         <span className="relative z-10">{item}</span>
@@ -153,6 +152,19 @@ export default function SkillsMarquee() {
           );
         })}
       </div>
+
+      <style>{`
+        .logoloop__item img.skills-highlight-logo {
+          width: auto;
+          height: clamp(8rem, 28vh, 14rem);
+        }
+
+        @media (min-width: 640px) {
+          .logoloop__item img.skills-highlight-logo {
+            height: clamp(18rem, 68vh, 46rem);
+          }
+        }
+      `}</style>
     </div>
   );
 }
