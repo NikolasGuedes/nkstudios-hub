@@ -1,25 +1,30 @@
-import { Float, Grid, OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Eye, Grip, MousePointer2, X } from 'lucide-react';
-import { useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
-import { __, useLocale } from '../lib/i18n';
-import { CursorFollower } from './ui/cursor-follower';
-import ShaderBackground from './ShaderBackground';
-import type { Mesh } from 'three';
+import {
+  Float,
+  Grid,
+  OrbitControls,
+  PerspectiveCamera,
+} from "@react-three/drei";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Eye, Grip, MousePointer2, X } from "lucide-react";
+import { useReducedMotion } from "motion/react";
+import { useEffect, useRef, useState } from "react";
+import { __, useLocale } from "../lib/i18n";
+import { CursorFollower } from "./ui/cursor-follower";
+import ShaderBackground from "./ShaderBackground";
+import type { Mesh } from "three";
 
 const SCENE_COLORS = {
-  directional: '#ffffff',
-  emissive: '#8cc8ff',
-  grid: '#d7e8ff',
-  mesh: '#ffffff',
-  point: '#006fff',
+  directional: "#ffffff",
+  emissive: "#8cc8ff",
+  grid: "#d7e8ff",
+  mesh: "#ffffff",
+  point: "#006fff",
 } as const;
 
 const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
 const MODEL_POSITION: [number, number, number] = [0, -0.08, 0];
 const ORBIT_TARGET: [number, number, number] = MODEL_POSITION;
-const VIEWPORT_READY_EVENT = 'nkstudios:viewport-ready';
+const VIEWPORT_READY_EVENT = "nkstudios:viewport-ready";
 
 function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
   const meshRef = useRef<Mesh>(null);
@@ -29,7 +34,8 @@ function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
 
     meshRef.current.rotation.y += delta * 0.42;
     meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
-    meshRef.current.position.y = MODEL_POSITION[1] + Math.sin(state.clock.elapsedTime * 0.9) * 0.04;
+    meshRef.current.position.y =
+      MODEL_POSITION[1] + Math.sin(state.clock.elapsedTime * 0.9) * 0.04;
   });
 
   return (
@@ -54,13 +60,19 @@ function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
   );
 }
 
-function Scene3D({ reduceMotion, isVisible }: { reduceMotion: boolean | null; isVisible: boolean }) {
+function Scene3D({
+  reduceMotion,
+  isVisible,
+}: {
+  reduceMotion: boolean | null;
+  isVisible: boolean;
+}) {
   return (
     <Canvas
       className="absolute inset-0 h-full w-full"
       dpr={[1, 1.5]}
-      frameloop={isVisible ? 'always' : 'never'}
-      gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+      frameloop={isVisible ? "always" : "never"}
+      gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       shadows={false}
     >
       <PerspectiveCamera fov={38} makeDefault position={CAMERA_POSITION} />
@@ -75,9 +87,21 @@ function Scene3D({ reduceMotion, isVisible }: { reduceMotion: boolean | null; is
         target={ORBIT_TARGET}
       />
       <ambientLight intensity={1.25} />
-      <directionalLight color={SCENE_COLORS.directional} intensity={1.55} position={[2, 4, 3]} />
-      <pointLight color={SCENE_COLORS.emissive} intensity={11} position={[-3, 1.5, 2.5]} />
-      <pointLight color={SCENE_COLORS.point} intensity={8} position={[3, 0.8, 1.5]} />
+      <directionalLight
+        color={SCENE_COLORS.directional}
+        intensity={1.55}
+        position={[2, 4, 3]}
+      />
+      <pointLight
+        color={SCENE_COLORS.emissive}
+        intensity={11}
+        position={[-3, 1.5, 2.5]}
+      />
+      <pointLight
+        color={SCENE_COLORS.point}
+        intensity={8}
+        position={[3, 0.8, 1.5]}
+      />
 
       <group position={[0, -1.95, -10.5]}>
         <Grid
@@ -114,11 +138,11 @@ export default function SkillsViewport() {
     if (!node || !window.IntersectionObserver) return;
 
     const observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         const entry = entries[0];
         if (entry) setIsViewportVisible(entry.isIntersecting);
       },
-      { rootMargin: '80px 0px' },
+      { rootMargin: "80px 0px" },
     );
 
     observer.observe(node);
@@ -158,54 +182,27 @@ export default function SkillsViewport() {
       ref={sectionRef}
       className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--Azul)]"
     >
-      <ShaderBackground isVisible={isViewportVisible} reduceMotion={reduceMotion} />
+      <ShaderBackground
+        isVisible={isViewportVisible}
+        reduceMotion={reduceMotion}
+      />
 
       <Scene3D isVisible={isViewportVisible} reduceMotion={reduceMotion} />
       <CursorFollower
         containerRef={sectionRef}
         defaultIcon={<Grip size={18} strokeWidth={2.1} />}
         hoverIcon={<MousePointer2 size={16} strokeWidth={2.2} />}
-        interactiveSelector='button, [data-cursor-hover]'
+        interactiveSelector="button, [data-cursor-hover]"
       />
-
-      <div className="pointer-events-none absolute left-5 top-5 z-30 rounded-2xl md:left-8 md:top-8">
-        <p className="text-[0.72rem] font-semibold tracking-[0.42em] text-[var(--Branco)]">
-          {__('MY SKILLS')}
-        </p>
-      </div>
-
-      <div className="absolute right-5 top-5 z-30  p-4 md:right-8 md:top-8 md:p-5">
-        <div className="flex flex-col gap-3">
-          {tabs.map((tab) => {
-            const isActive = tab.id === activeTab;
-
-            return (
-              <button
-                data-cursor-hover
-                key={tab.id}
-                className={[
-                  'min-w-[8.8rem] rounded-full border px-4 py-1.5 text-center text-[0.68rem] tracking-[0.14em] transition-colors cursor-none',
-                  isActive
-                    ? 'border-[var(--Branco)] bg-[var(--Branco)] font-bold text-[color:var(--page-bg)]'
-                    : 'border-[var(--Branco)] bg-transparent text-[var(--Branco)] hover:bg-[var(--surface-hover)]',
-                ].join(' ')}
-                type="button"
-              >
-                {__(tab.label)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {detailsVisible ? (
         <div className="absolute bottom-5 left-5 z-30 max-w-[19rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">
             <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--Branco)]">
-              {__('Active 3D scene')}
+              {__("Active 3D scene")}
             </p>
             <button
-              aria-label={__('Hide details')}
+              aria-label={__("Hide details")}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[var(--surface-softer)] text-[var(--Branco)] transition hover:bg-[var(--surface-soft)]"
               onClick={() => setDetailsVisible(false)}
               type="button"
@@ -216,13 +213,13 @@ export default function SkillsViewport() {
 
           <p className="mt-2 text-sm leading-6 text-[var(--Branco)]">
             {__(
-              'The central placeholder will be replaced by your final model. For now, the focus is structuring the viewport, grid, camera, and background.',
+              "The central placeholder will be replaced by your final model. For now, the focus is structuring the viewport, grid, camera, and background.",
             )}
           </p>
         </div>
       ) : (
         <button
-          aria-label={__('Show details')}
+          aria-label={__("Show details")}
           className="absolute bottom-5 left-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] text-[var(--Branco)] shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:bg-[var(--surface-soft)] md:bottom-8 md:left-8"
           onClick={() => setDetailsVisible(true)}
           type="button"
@@ -230,7 +227,6 @@ export default function SkillsViewport() {
           <Eye size={18} strokeWidth={2.2} />
         </button>
       )}
-     
     </section>
   );
 }

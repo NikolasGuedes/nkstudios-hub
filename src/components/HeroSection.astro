@@ -20,8 +20,10 @@ import { __ } from '../lib/i18n';
               <span data-i18n-key="Open to work">{__('Open to work')}</span>
               <span
                 aria-hidden="true"
-                class="inline-block h-[0.8em] w-[0.8em] rounded-full bg-current"
-              />
+                class="open-to-work-indicator relative inline-flex h-[0.8em] w-[0.8em] shrink-0 rounded-full bg-current"
+              >
+                <span class="absolute inset-0 rounded-full bg-current"></span>
+              </span>
             </p>
           </div>
 
@@ -42,3 +44,44 @@ import { __ } from '../lib/i18n';
     </div>
   </div>
 </section>
+
+<style>
+  .open-to-work-indicator {
+    animation: open-to-work-dot 1.8s ease-in-out infinite;
+  }
+
+  .open-to-work-indicator > span {
+    animation: open-to-work-ring 1.8s ease-out infinite;
+  }
+
+  @keyframes open-to-work-dot {
+    0%,
+    100% {
+      transform: scale(0.9);
+    }
+
+    50% {
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes open-to-work-ring {
+    0% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+
+    75%,
+    100% {
+      opacity: 0;
+      transform: scale(2.35);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .open-to-work-indicator,
+    .open-to-work-indicator > span {
+      animation: none;
+    }
+  }
+</style>

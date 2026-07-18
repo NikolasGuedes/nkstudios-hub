@@ -25,15 +25,18 @@ function renderBackgroundItem(item) {
 function renderForegroundItem(item, _key, { isHighlighted } = {}) {
   return (
     <span className="relative flex items-center gap-8 text-[clamp(3.5rem,100vh,10rem)] font-extrabold uppercase leading-none text-[var(--Branco)]">
-      {isHighlighted ? (
-        <img
-          src="/images/Skills_logos/vue.svg"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[4em] w-auto -translate-x-1/2 -translate-y-1/2"
-        />
-      ) : null}
-      <span className="relative z-10">{item}</span>
+      <span className="relative isolate inline-flex items-center justify-center">
+        {isHighlighted ? (
+          <img
+            src="/images/Skills_logos/vue.svg"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 -z-10 max-w-none -translate-x-1/2 -translate-y-1/2 opacity-70"
+            style={{ height: 'clamp(18rem, 68vh, 46rem)', width: 'auto' }}
+          />
+        ) : null}
+        <span className="relative z-10">{item}</span>
+      </span>
       <span aria-hidden="true" className="relative z-10">-</span>
     </span>
   );
