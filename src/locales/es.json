@@ -54,5 +54,16 @@
   "A company website offering web services and solutions focused on making users' lives easier.": "Sitio web de una empresa que ofrece servicios y soluciones web con el objetivo de facilitar la vida de los usuarios.",
   "A landing page created for a company specializing in data analytics and artificial intelligence solutions.": "Landing page creada para una empresa especializada en soluciones de análisis de datos e inteligencia artificial.",
   "My former portfolio website.": "Mi antiguo sitio web de portafolio.",
-  "OLI is a short 2D puzzle-platformer with a mysterious atmosphere. You play as a child who must escape from monsters while traveling through different locations in an inhospitable city.": "OLI es un juego corto de puzles y plataformas en 2D con una atmósfera misteriosa. Juegas como un niño que debe escapar de monstruos mientras recorre diferentes lugares de una ciudad inhóspita."
+  "OLI is a short 2D puzzle-platformer with a mysterious atmosphere. You play as a child who must escape from monsters while traveling through different locations in an inhospitable city.": "OLI es un juego corto de puzles y plataformas en 2D con una atmósfera misteriosa. Juegas como un niño que debe escapar de monstruos mientras recorre diferentes lugares de una ciudad inhóspita.",
+  "CONTACT ME": "CONTÁCTAME",
+  "Contact form": "Formulario de contacto",
+  "Name": "Nombre",
+  "Email": "Email",
+  "Description": "Descripción",
+  "SEND MESSAGE": "ENVIAR MENSAJE",
+  "SENDING...": "ENVIANDO...",
+  "Message received successfully.": "Mensaje recibido correctamente",
+  "Please review the required fields.": "Revisa los campos obligatorios.",
+  "Too many attempts. Please try again later.": "Demasiados intentos. Inténtalo de nuevo más tarde.",
+  "Unable to send your message. Please try again.": "No se pudo enviar tu mensaje. Inténtalo de nuevo."
 }

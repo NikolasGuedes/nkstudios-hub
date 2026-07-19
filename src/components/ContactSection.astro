@@ -1,0 +1,385 @@
+---
+import { __ } from '../lib/i18n';
+---
+
+<section id="contato" class="contact-section" aria-labelledby="contact-title">
+  <div class="contact-section__shell">
+    <h2 id="contact-title" class="contact-section__title" data-i18n-key="CONTACT ME">
+      {__('CONTACT ME')}
+    </h2>
+
+    <form
+      class="contact-form"
+      data-contact-form
+      aria-label={__('Contact form')}
+      data-i18n-attr-aria-label="Contact form"
+    >
+      <div class="contact-form__field" data-contact-hide-on-success>
+        <label for="contact-name" class="sr-only" data-i18n-key="Name">{__('Name')}</label>
+        <input
+          id="contact-name"
+          name="name"
+          type="text"
+          autocomplete="name"
+          placeholder={__('Name')}
+          data-i18n-attr-placeholder="Name"
+          minlength="2"
+          maxlength="80"
+          required
+        />
+      </div>
+
+      <div class="contact-form__field" data-contact-hide-on-success>
+        <label for="contact-email" class="sr-only" data-i18n-key="Email">{__('Email')}</label>
+        <input
+          id="contact-email"
+          name="email"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          placeholder={__('Email')}
+          data-i18n-attr-placeholder="Email"
+          maxlength="254"
+          required
+        />
+      </div>
+
+      <div
+        class="contact-form__field contact-form__field--description"
+        data-contact-hide-on-success
+      >
+        <label for="contact-description" class="sr-only" data-i18n-key="Description">
+          {__('Description')}
+        </label>
+        <textarea
+          id="contact-description"
+          name="description"
+          placeholder={__('Description')}
+          data-i18n-attr-placeholder="Description"
+          minlength="10"
+          maxlength="3000"
+          required
+        ></textarea>
+      </div>
+
+      <div
+        class="contact-form__honeypot"
+        aria-hidden="true"
+        data-contact-hide-on-success
+      >
+        <label for="contact-company">Company</label>
+        <input
+          id="contact-company"
+          name="company"
+          type="text"
+          tabindex="-1"
+          autocomplete="off"
+        />
+      </div>
+
+      <p
+        class="contact-form__status"
+        data-contact-status
+        data-contact-hide-on-success
+        aria-live="polite"
+      ></p>
+
+      <button
+        class="contact-form__submit"
+        type="submit"
+        data-contact-submit
+        data-contact-hide-on-success
+      >
+        <span data-i18n-key="SEND MESSAGE">{__('SEND MESSAGE')}</span>
+      </button>
+
+      <p
+        class="contact-form__success"
+        data-contact-success
+        data-i18n-key="Message received successfully."
+        role="status"
+        aria-live="polite"
+        tabindex="-1"
+        hidden
+      >
+        {__('Message received successfully.')}
+      </p>
+    </form>
+  </div>
+</section>
+
+<script>
+  import { translate } from '../lib/i18n';
+
+  type ContactApiResponse = {
+    success?: boolean;
+    error?: {
+      code?: string;
+    };
+  };
+
+  const getErrorMessageKey = (code?: string): string => {
+    if (code === 'VALIDATION_ERROR') return 'Please review the required fields.';
+    if (code === 'RATE_LIMITED') return 'Too many attempts. Please try again later.';
+
+    return 'Unable to send your message. Please try again.';
+  };
+
+  const setTranslatedText = (element: HTMLElement, key: string): void => {
+    element.dataset.i18nKey = key;
+    element.textContent = translate(key);
+  };
+
+  const forms = document.querySelectorAll<HTMLFormElement>('[data-contact-form]');
+
+  for (const form of forms) {
+    const submitButton = form.querySelector<HTMLButtonElement>('[data-contact-submit]');
+    const submitLabel = submitButton?.querySelector<HTMLElement>('[data-i18n-key]');
+    const status = form.querySelector<HTMLElement>('[data-contact-status]');
+    const successMessage = form.querySelector<HTMLElement>('[data-contact-success]');
+    const elementsToHide = form.querySelectorAll<HTMLElement>('[data-contact-hide-on-success]');
+
+    if (!submitButton || !submitLabel || !status || !successMessage) continue;
+
+    form.addEventListener('submit', async (event: SubmitEvent) => {
+      event.preventDefault();
+
+      if (!form.reportValidity()) {
+        status.dataset.state = 'error';
+        setTranslatedText(status, 'Please review the required fields.');
+        return;
+      }
+
+      const formData = new FormData(form);
+      const payload = {
+        name: String(formData.get('name') ?? ''),
+        email: String(formData.get('email') ?? ''),
+        description: String(formData.get('description') ?? ''),
+        company: String(formData.get('company') ?? ''),
+      };
+
+      submitButton.disabled = true;
+      status.textContent = '';
+      status.removeAttribute('data-i18n-key');
+      status.dataset.state = 'idle';
+      setTranslatedText(submitLabel, 'SENDING...');
+
+      try {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const result = (await response.json()) as ContactApiResponse;
+
+        if (!response.ok || !result.success) {
+          status.dataset.state = 'error';
+          setTranslatedText(status, getErrorMessageKey(result.error?.code));
+          return;
+        }
+
+        form.reset();
+
+        for (const element of elementsToHide) {
+          element.hidden = true;
+        }
+
+        successMessage.hidden = false;
+        successMessage.focus();
+      } catch {
+        status.dataset.state = 'error';
+        setTranslatedText(status, 'Unable to send your message. Please try again.');
+      } finally {
+        submitButton.disabled = false;
+        setTranslatedText(submitLabel, 'SEND MESSAGE');
+      }
+    });
+  }
+</script>
+
+<style>
+  .contact-section {
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: clamp(4.5rem, 8vw, 7.5rem) clamp(1rem, 3.5vw, 3.5rem);
+    background: var(--page-bg);
+    color: var(--Branco);
+  }
+
+  .contact-section__shell {
+    width: min(100%, 112rem);
+    margin-inline: auto;
+  }
+
+  .contact-section__title {
+    margin: 0;
+    font-size: clamp(2rem, 3vw, 2.55rem);
+    font-weight: 650;
+    line-height: 1;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  .contact-form {
+    position: relative;
+    display: grid;
+    width: min(100%, 45.8rem);
+    margin: clamp(3rem, 5vw, 4rem) auto 0;
+    gap: 1.65rem;
+  }
+
+  .contact-form__field input,
+  .contact-form__field textarea {
+    display: block;
+    width: 100%;
+    border: 1px solid rgba(244, 242, 237, 0.88);
+    border-radius: 0;
+    outline: none;
+    background: transparent;
+    color: var(--Branco);
+    font: inherit;
+    font-size: clamp(1.35rem, 2.2vw, 2rem);
+    font-weight: 300;
+    line-height: 1.25;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  .contact-form__field input {
+    min-height: clamp(5.25rem, 8vw, 7.2rem);
+    padding: 0.75rem 0.6rem;
+  }
+
+  .contact-form__field textarea {
+    min-height: clamp(13rem, 22vw, 17rem);
+    padding: 1rem 0.6rem;
+    resize: vertical;
+  }
+
+  .contact-form__field input::placeholder,
+  .contact-form__field textarea::placeholder {
+    color: rgba(244, 242, 237, 0.34);
+    opacity: 1;
+  }
+
+  .contact-form__field input:focus,
+  .contact-form__field textarea:focus {
+    border-color: var(--Azul);
+    box-shadow: 0 0 0 1px var(--Azul);
+  }
+
+  .contact-form__honeypot {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .contact-form__status {
+    min-height: 1.5rem;
+    margin: -0.25rem 0 -0.65rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: rgba(244, 242, 237, 0.72);
+  }
+
+  .contact-form__status[data-state='success'] {
+    color: #78e6a3;
+  }
+
+  .contact-form__status[data-state='error'] {
+    color: #ff8b8b;
+  }
+
+  .contact-form__success {
+    display: grid;
+    min-height: clamp(18rem, 46vh, 31rem);
+    margin: 0;
+    place-items: center;
+    color: var(--Branco);
+    font-size: clamp(1.65rem, 3.5vw, 3rem);
+    font-weight: 500;
+    line-height: 1.15;
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  .contact-form__success[hidden] {
+    display: none;
+  }
+
+  .contact-form__success:focus {
+    outline: none;
+  }
+
+  .contact-form__submit {
+    display: grid;
+    min-height: clamp(5.25rem, 8vw, 7.2rem);
+    place-items: center;
+    border: 0;
+    border-radius: clamp(1.1rem, 2vw, 1.5rem);
+    background: var(--Azul);
+    color: var(--Branco);
+    font: inherit;
+    font-size: clamp(1rem, 1.7vw, 1.5rem);
+    font-weight: 650;
+    letter-spacing: 0.015em;
+    text-transform: uppercase;
+    transition: background-color 180ms ease, transform 180ms ease, opacity 180ms ease;
+  }
+
+  .contact-form__submit:hover:not(:disabled) {
+    background: #1780ff;
+    transform: translateY(-2px);
+  }
+
+  .contact-form__submit:focus-visible {
+    outline: 2px solid var(--Branco);
+    outline-offset: 4px;
+  }
+
+  .contact-form__submit:disabled {
+    opacity: 0.62;
+  }
+
+  @media (max-width: 40rem) {
+    .contact-section {
+      padding-top: 4.5rem;
+      padding-bottom: 5rem;
+    }
+
+    .contact-form {
+      margin-top: 2.5rem;
+      gap: 1rem;
+    }
+
+    .contact-form__field input {
+      min-height: 4.75rem;
+      padding-inline: 0.75rem;
+    }
+
+    .contact-form__field textarea {
+      min-height: 12rem;
+      padding: 0.85rem 0.75rem;
+    }
+
+    .contact-form__submit {
+      min-height: 4.75rem;
+      border-radius: 1rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact-form__field input,
+    .contact-form__field textarea,
+    .contact-form__submit {
+      transition: none;
+    }
+  }
+</style>
