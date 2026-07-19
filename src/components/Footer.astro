@@ -13,7 +13,7 @@ const navigation = [
   <div class="site-footer__artwork">
     <img
       class="site-footer__dragon"
-      src="/images/dragon.png"
+      src="/images/dragon_2.png"
       alt=""
       aria-hidden="true"
       loading="lazy"
@@ -21,7 +21,7 @@ const navigation = [
     />
     <img
       class="site-footer__fire"
-      src="/images/fire.png"
+      src="/images/fire_2.png"
       alt=""
       aria-hidden="true"
       loading="lazy"
@@ -142,7 +142,7 @@ const navigation = [
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     pointer-events: none;
     transform-origin: center;
     user-select: none;
@@ -155,8 +155,10 @@ const navigation = [
   }
 
   .site-footer__fire {
+    --footer-fire-y: 4%;
     z-index: -3;
-    animation: footer-fire-drift 5s ease-in-out infinite alternate;
+    transform: translateX(var(--footer-art-x)) translateY(var(--footer-fire-y));
+    will-change: auto;
   }
 
   .site-footer__navigation {
@@ -273,7 +275,17 @@ const navigation = [
       --footer-art-x: -29%;
       width: 154%;
       max-width: none;
+      object-fit: cover;
       object-position: 70% center;
+    }
+
+    .site-footer__dragon {
+      --footer-art-x: -18%;
+      object-position: 56% center;
+    }
+
+    .site-footer__fire {
+      --footer-fire-y: 8%;
     }
 
     .site-footer__navigation {
@@ -369,8 +381,15 @@ const navigation = [
     .site-footer__dragon,
     .site-footer__fire {
       animation: none;
-      transform: translateX(var(--footer-art-x));
       will-change: auto;
+    }
+
+    .site-footer__dragon {
+      transform: translateX(var(--footer-art-x));
+    }
+
+    .site-footer__fire {
+      transform: translateX(var(--footer-art-x)) translateY(var(--footer-fire-y));
     }
 
     .site-footer__navigation a,
@@ -394,17 +413,4 @@ const navigation = [
     }
   }
 
-  @keyframes footer-fire-drift {
-    0% {
-      transform: translateX(var(--footer-art-x)) translate3d(0.35%, 0.25%, 0) scale(1.022) rotate(0.07deg);
-    }
-
-    50% {
-      transform: translateX(var(--footer-art-x)) translate3d(-0.25%, -0.3%, 0) scale(1.016) rotate(-0.05deg);
-    }
-
-    100% {
-      transform: translateX(var(--footer-art-x)) translate3d(-0.5%, 0.15%, 0) scale(1.025) rotate(-0.1deg);
-    }
-  }
 </style>
