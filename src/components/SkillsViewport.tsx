@@ -1,70 +1,51 @@
 import {
-  Float,
   Grid,
   OrbitControls,
   PerspectiveCamera,
+  useGLTF,
 } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { Eye, Grip, MousePointer2, X } from "lucide-react";
 import { useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { __, useLocale } from "../lib/i18n";
 import { CursorFollower } from "./ui/cursor-follower";
 import ShaderBackground from "./ShaderBackground";
-import type { Mesh } from "three";
 
 const SCENE_COLORS = {
   directional: "#ffffff",
   emissive: "#8cc8ff",
   grid: "#d7e8ff",
-  mesh: "#ffffff",
   point: "#006fff",
 } as const;
 
 const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
-const MODEL_POSITION: [number, number, number] = [0, -0.08, 0];
-const ORBIT_TARGET: [number, number, number] = MODEL_POSITION;
+const GROUND_Y = -1.95;
+const MODEL_SCALE = 0.72;
+const MODEL_POSITION: [number, number, number] = [0, -2.005, 0];
+const MODEL_ROTATION: [number, number, number] = [0, -Math.PI / 2, 0];
+const MODEL_URL = "/3D/LowPolyNK.glb";
+const ORBIT_TARGET: [number, number, number] = [0, -0.2, 0];
 const VIEWPORT_READY_EVENT = "nkstudios:viewport-ready";
 
-function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
-  const meshRef = useRef<Mesh>(null);
-
-  useFrame((state, delta) => {
-    if (!meshRef.current) return;
-
-    meshRef.current.rotation.y += delta * 0.42;
-    meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
-    meshRef.current.position.y =
-      MODEL_POSITION[1] + Math.sin(state.clock.elapsedTime * 0.9) * 0.04;
-  });
+function LowPolyModel() {
+  const { scene } = useGLTF(MODEL_URL);
+  const model = useMemo(() => scene.clone(true), [scene]);
 
   return (
-    <Float
-      floatIntensity={reduceMotion ? 0.2 : 0.9}
-      rotationIntensity={reduceMotion ? 0.15 : 0.45}
-      speed={reduceMotion ? 0.4 : 1.2}
+    <group
+      position={MODEL_POSITION}
+      rotation={MODEL_ROTATION}
+      scale={MODEL_SCALE}
     >
-      <mesh ref={meshRef} castShadow position={MODEL_POSITION}>
-        <torusKnotGeometry args={[0.58, 0.2, 220, 32, 2, 3]} />
-        <meshPhysicalMaterial
-          clearcoat={1}
-          clearcoatRoughness={0.12}
-          color={SCENE_COLORS.mesh}
-          emissive={SCENE_COLORS.emissive}
-          emissiveIntensity={0.32}
-          metalness={0.22}
-          roughness={0.1}
-        />
-      </mesh>
-    </Float>
+      <primitive object={model} />
+    </group>
   );
 }
 
 function Scene3D({
-  reduceMotion,
   isVisible,
 }: {
-  reduceMotion: boolean | null;
   isVisible: boolean;
 }) {
   return (
@@ -103,7 +84,7 @@ function Scene3D({
         position={[3, 0.8, 1.5]}
       />
 
-      <group position={[0, -1.95, -10.5]}>
+      <group position={[0, GROUND_Y, -10.5]}>
         <Grid
           args={[80, 44]}
           cellColor={SCENE_COLORS.grid}
@@ -120,7 +101,7 @@ function Scene3D({
         />
       </group>
 
-      <PlaceholderModel reduceMotion={reduceMotion} />
+      <LowPolyModel />
     </Canvas>
   );
 }
@@ -187,7 +168,7 @@ export default function SkillsViewport() {
         reduceMotion={reduceMotion}
       />
 
-      <Scene3D isVisible={isViewportVisible} reduceMotion={reduceMotion} />
+      <Scene3D isVisible={isViewportVisible} />
       <CursorFollower
         containerRef={sectionRef}
         defaultIcon={<Grip size={18} strokeWidth={2.1} />}
@@ -196,10 +177,10 @@ export default function SkillsViewport() {
       />
 
       {detailsVisible ? (
-        <div className="absolute bottom-5 left-5 z-30 max-w-[19rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
+        <div className="absolute bottom-5 left-5 z-30 w-[calc(100%-2.5rem)] max-w-[42rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">
             <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--Branco)]">
-              {__("Active 3D scene")}
+              {__("Model references")}
             </p>
             <button
               aria-label={__("Hide details")}
@@ -213,9 +194,33 @@ export default function SkillsViewport() {
 
           <p className="mt-2 text-sm leading-6 text-[var(--Branco)]">
             {__(
-              "The central placeholder will be replaced by your final model. For now, the focus is structuring the viewport, grid, camera, and background.",
+              "Reference images used to create the LowPolyNK test model.",
             )}
           </p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <figure className="overflow-hidden rounded-2xl border border-[color:var(--line-mid)] bg-black/15 p-2">
+              <img
+                alt={__("Front reference")}
+                className="h-[clamp(9rem,28vh,15rem)] w-full object-contain"
+                src="/3D/referencia_01.JPG"
+              />
+              <figcaption className="px-1 pb-1 pt-2 text-center text-[0.62rem] uppercase tracking-[0.16em] text-[var(--Branco)]">
+                {__("Front reference")}
+              </figcaption>
+            </figure>
+
+            <figure className="overflow-hidden rounded-2xl border border-[color:var(--line-mid)] bg-black/15 p-2">
+              <img
+                alt={__("Side reference")}
+                className="h-[clamp(9rem,28vh,15rem)] w-full object-contain"
+                src="/3D/referencia_02.JPG"
+              />
+              <figcaption className="px-1 pb-1 pt-2 text-center text-[0.62rem] uppercase tracking-[0.16em] text-[var(--Branco)]">
+                {__("Side reference")}
+              </figcaption>
+            </figure>
+          </div>
         </div>
       ) : (
         <button
@@ -230,3 +235,5 @@ export default function SkillsViewport() {
     </section>
   );
 }
+
+useGLTF.preload(MODEL_URL);
