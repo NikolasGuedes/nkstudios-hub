@@ -2,15 +2,38 @@ import {
   Grid,
   OrbitControls,
   PerspectiveCamera,
+  useAnimations,
   useGLTF,
 } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Eye, Grip, MousePointer2, X } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  getLowPolyNkFace,
+  LOW_POLY_NK_ANIMATIONS,
+  LOW_POLY_NK_FACE_MATERIAL,
+  LOW_POLY_NK_FACE_OFFSETS,
+  LOW_POLY_NK_MODEL_URL,
+  type LowPolyNkAnimation,
+  type LowPolyNkFace,
+} from "../config/low-poly-nk";
 import { __, useLocale } from "../lib/i18n";
 import { CursorFollower } from "./ui/cursor-follower";
 import ShaderBackground from "./ShaderBackground";
+import {
+  LoopOnce,
+  Mesh,
+  MathUtils,
+  RepeatWrapping,
+  type AnimationAction,
+  type Group,
+  type MeshStandardMaterial,
+  type Object3D,
+  type PerspectiveCamera as ThreePerspectiveCamera,
+  type Texture,
+} from "three";
+import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 const SCENE_COLORS = {
   directional: "#ffffff",
@@ -19,27 +42,200 @@ const SCENE_COLORS = {
   point: "#006fff",
 } as const;
 
+const CAMERA_FOV = 38;
+const CAMERA_INTERACTION_FOV = 28;
 const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
 const GROUND_Y = -1.95;
 const MODEL_SCALE = 0.72;
 const MODEL_POSITION: [number, number, number] = [0, -2.005, 0];
-const MODEL_ROTATION: [number, number, number] = [0, -Math.PI / 2, 0];
-const MODEL_URL = "/3D/LowPolyNK.glb";
+const MODEL_ROTATION: [number, number, number] = [0, 0, 0];
 const ORBIT_TARGET: [number, number, number] = [0, -0.2, 0];
 const VIEWPORT_READY_EVENT = "nkstudios:viewport-ready";
 
 function LowPolyModel() {
-  const { scene } = useGLTF(MODEL_URL);
-  const model = useMemo(() => scene.clone(true), [scene]);
+  const groupRef = useRef<Group>(null);
+  const activeFaceRef = useRef<LowPolyNkFace | null>(null);
+  const activeAnimationRef = useRef<LowPolyNkAnimation>(
+    LOW_POLY_NK_ANIMATIONS.sequence[0],
+  );
+  const { animations, scene } = useGLTF(LOW_POLY_NK_MODEL_URL);
+  const { faceTexture, model } = useMemo<{
+    faceTexture: Texture | null;
+    model: Object3D;
+  }>(() => {
+    const clonedModel = clone(scene);
+    let animatedFaceTexture: Texture | null = null;
+
+    clonedModel.traverse((child) => {
+      if (!(child instanceof Mesh)) return;
+
+      const sourceMaterials = Array.isArray(child.material)
+        ? child.material
+        : [child.material];
+      const clonedMaterials = sourceMaterials.map((sourceMaterial) => {
+        if (sourceMaterial.name !== LOW_POLY_NK_FACE_MATERIAL) {
+          return sourceMaterial;
+        }
+
+        const faceMaterial = sourceMaterial.clone() as MeshStandardMaterial;
+        const sourceTexture = faceMaterial.emissiveMap ?? faceMaterial.map;
+
+        if (sourceTexture) {
+          animatedFaceTexture = sourceTexture.clone();
+          animatedFaceTexture.wrapS = RepeatWrapping;
+          animatedFaceTexture.wrapT = RepeatWrapping;
+          animatedFaceTexture.needsUpdate = true;
+
+          if (faceMaterial.emissiveMap === sourceTexture) {
+            faceMaterial.emissiveMap = animatedFaceTexture;
+          }
+
+          if (faceMaterial.map === sourceTexture) {
+            faceMaterial.map = animatedFaceTexture;
+          }
+        }
+
+        return faceMaterial;
+      });
+
+      child.material = Array.isArray(child.material)
+        ? clonedMaterials
+        : clonedMaterials[0];
+    });
+
+    return { faceTexture: animatedFaceTexture, model: clonedModel };
+  }, [scene]);
+  const { actions, mixer } = useAnimations(animations, groupRef);
+
+  useEffect(() => {
+    const sequence = LOW_POLY_NK_ANIMATIONS.sequence
+      .map((name) => ({ action: actions[name], name }))
+      .filter(
+        (entry): entry is { action: AnimationAction; name: LowPolyNkAnimation } =>
+          Boolean(entry.action),
+    );
+    if (sequence.length === 0) return;
+
+    let activeIndex = 0;
+    let idleTimerId: number | null = null;
+
+    const playAction = (index: number, previousAction?: AnimationAction) => {
+      const next = sequence[index];
+      if (!next) return;
+
+      if (idleTimerId !== null) {
+        window.clearTimeout(idleTimerId);
+        idleTimerId = null;
+      }
+
+      next.action.reset().setLoop(LoopOnce, 1);
+      next.action.clampWhenFinished = true;
+      next.action.play();
+      activeAnimationRef.current = next.name;
+      activeFaceRef.current = null;
+
+      if (previousAction) {
+        previousAction.crossFadeTo(
+          next.action,
+          LOW_POLY_NK_ANIMATIONS.crossFadeSeconds,
+          true,
+        );
+      } else {
+        next.action.fadeIn(LOW_POLY_NK_ANIMATIONS.crossFadeSeconds);
+      }
+
+      if (next.name === "IDLE") {
+        idleTimerId = window.setTimeout(() => {
+          const lookingIndex = sequence.findIndex(
+            ({ name }) => name === "LOOKING",
+          );
+          if (lookingIndex < 0 || activeIndex !== index) return;
+
+          const idleAction = sequence[activeIndex]?.action;
+          activeIndex = lookingIndex;
+          playAction(activeIndex, idleAction);
+        }, LOW_POLY_NK_ANIMATIONS.idleBeforeLookingSeconds * 1000);
+      }
+    };
+
+    const handleFinished = (event: { action: AnimationAction }) => {
+      if (event.action !== sequence[activeIndex]?.action) return;
+
+      const previousAction = event.action;
+      activeIndex = (activeIndex + 1) % sequence.length;
+      playAction(activeIndex, previousAction);
+    };
+
+    playAction(activeIndex);
+    mixer.addEventListener("finished", handleFinished);
+
+    return () => {
+      if (idleTimerId !== null) window.clearTimeout(idleTimerId);
+      mixer.removeEventListener("finished", handleFinished);
+      sequence.forEach(({ action }) => action.stop());
+    };
+  }, [actions, mixer]);
+
+  useFrame(() => {
+    if (!faceTexture) return;
+
+    const activeAnimation = activeAnimationRef.current;
+    const animationTime = actions[activeAnimation]?.time ?? 0;
+    const nextFace = getLowPolyNkFace(activeAnimation, animationTime);
+    if (activeFaceRef.current === nextFace) return;
+
+    activeFaceRef.current = nextFace;
+    const [offsetX, offsetY] = LOW_POLY_NK_FACE_OFFSETS[nextFace];
+    faceTexture.offset.set(offsetX, offsetY);
+  });
 
   return (
     <group
+      ref={groupRef}
       position={MODEL_POSITION}
       rotation={MODEL_ROTATION}
       scale={MODEL_SCALE}
     >
       <primitive object={model} />
     </group>
+  );
+}
+
+function InteractiveOrbitControls() {
+  const isInteractingRef = useRef(false);
+  const camera = useThree(
+    (state) => state.camera,
+  ) as ThreePerspectiveCamera;
+
+  useFrame((_, delta) => {
+    const targetFov = isInteractingRef.current
+      ? CAMERA_INTERACTION_FOV
+      : CAMERA_FOV;
+    const nextFov = MathUtils.damp(camera.fov, targetFov, 8, delta);
+
+    if (Math.abs(camera.fov - nextFov) < 0.001) return;
+
+    camera.fov = nextFov;
+    camera.updateProjectionMatrix();
+  });
+
+  return (
+    <OrbitControls
+      enableDamping
+      dampingFactor={0.08}
+      enablePan={false}
+      enableZoom={false}
+      maxPolarAngle={1.6}
+      minPolarAngle={1.05}
+      onEnd={() => {
+        isInteractingRef.current = false;
+      }}
+      onStart={() => {
+        isInteractingRef.current = true;
+      }}
+      rotateSpeed={0.7}
+      target={ORBIT_TARGET}
+    />
   );
 }
 
@@ -56,17 +252,12 @@ function Scene3D({
       gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       shadows={false}
     >
-      <PerspectiveCamera fov={38} makeDefault position={CAMERA_POSITION} />
-      <OrbitControls
-        enableDamping
-        dampingFactor={0.08}
-        enablePan={false}
-        enableZoom={false}
-        maxPolarAngle={1.6}
-        minPolarAngle={1.05}
-        rotateSpeed={0.7}
-        target={ORBIT_TARGET}
+      <PerspectiveCamera
+        fov={CAMERA_FOV}
+        makeDefault
+        position={CAMERA_POSITION}
       />
+      <InteractiveOrbitControls />
       <ambientLight intensity={1.25} />
       <directionalLight
         color={SCENE_COLORS.directional}
@@ -236,4 +427,4 @@ export default function SkillsViewport() {
   );
 }
 
-useGLTF.preload(MODEL_URL);
+useGLTF.preload(LOW_POLY_NK_MODEL_URL);
