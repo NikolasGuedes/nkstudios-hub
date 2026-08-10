@@ -17,6 +17,7 @@ import {
   LOW_POLY_NK_MODEL_URL,
   type LowPolyNkAnimation,
   type LowPolyNkFace,
+  type LowPolyNkRandomAnimation,
 } from "../config/low-poly-nk";
 import { __, useLocale } from "../lib/i18n";
 import { CursorFollower } from "./ui/cursor-follower";
@@ -56,7 +57,7 @@ function LowPolyModel() {
   const groupRef = useRef<Group>(null);
   const activeFaceRef = useRef<LowPolyNkFace | null>(null);
   const activeAnimationRef = useRef<LowPolyNkAnimation>(
-    LOW_POLY_NK_ANIMATIONS.sequence[0],
+    LOW_POLY_NK_ANIMATIONS.idleClip,
   );
   const { animations, scene } = useGLTF(LOW_POLY_NK_MODEL_URL);
   const { faceTexture, model } = useMemo<{
@@ -108,7 +109,11 @@ function LowPolyModel() {
   const { actions, mixer } = useAnimations(animations, groupRef);
 
   useEffect(() => {
-    const sequence = LOW_POLY_NK_ANIMATIONS.sequence
+    const clipNames: readonly LowPolyNkAnimation[] = [
+      LOW_POLY_NK_ANIMATIONS.idleClip,
+      ...LOW_POLY_NK_ANIMATIONS.randomClips,
+    ];
+    const sequence = clipNames
       .map((name) => ({ action: actions[name], name }))
       .filter(
         (entry): entry is { action: AnimationAction; name: LowPolyNkAnimation } =>
@@ -118,6 +123,7 @@ function LowPolyModel() {
 
     let activeIndex = 0;
     let idleTimerId: number | null = null;
+    let lastRandomAnimation: LowPolyNkRandomAnimation | null = null;
 
     const playAction = (index: number, previousAction?: AnimationAction) => {
       const next = sequence[index];
@@ -144,17 +150,45 @@ function LowPolyModel() {
         next.action.fadeIn(LOW_POLY_NK_ANIMATIONS.crossFadeSeconds);
       }
 
-      if (next.name === "IDLE") {
+      if (next.name === LOW_POLY_NK_ANIMATIONS.idleClip) {
         idleTimerId = window.setTimeout(() => {
-          const lookingIndex = sequence.findIndex(
-            ({ name }) => name === "LOOKING",
+          const availableRandomClips = sequence.filter(
+            (
+              entry,
+            ): entry is {
+              action: AnimationAction;
+              name: LowPolyNkRandomAnimation;
+            } =>
+              entry.name !== LOW_POLY_NK_ANIMATIONS.idleClip &&
+              entry.name !== lastRandomAnimation,
           );
-          if (lookingIndex < 0 || activeIndex !== index) return;
+          const randomPool =
+            availableRandomClips.length > 0
+              ? availableRandomClips
+              : sequence.filter(
+                  (
+                    entry,
+                  ): entry is {
+                    action: AnimationAction;
+                    name: LowPolyNkRandomAnimation;
+                  } => entry.name !== LOW_POLY_NK_ANIMATIONS.idleClip,
+                );
+          if (randomPool.length === 0 || activeIndex !== index) return;
+
+          const selected =
+            randomPool[Math.floor(Math.random() * randomPool.length)];
+          if (!selected) return;
+
+          const selectedIndex = sequence.findIndex(
+            ({ name }) => name === selected.name,
+          );
+          if (selectedIndex < 0) return;
 
           const idleAction = sequence[activeIndex]?.action;
-          activeIndex = lookingIndex;
+          lastRandomAnimation = selected.name;
+          activeIndex = selectedIndex;
           playAction(activeIndex, idleAction);
-        }, LOW_POLY_NK_ANIMATIONS.idleBeforeLookingSeconds * 1000);
+        }, LOW_POLY_NK_ANIMATIONS.idleBeforeRandomSeconds * 1000);
       }
     };
 
@@ -162,7 +196,12 @@ function LowPolyModel() {
       if (event.action !== sequence[activeIndex]?.action) return;
 
       const previousAction = event.action;
-      activeIndex = (activeIndex + 1) % sequence.length;
+      const idleIndex = sequence.findIndex(
+        ({ name }) => name === LOW_POLY_NK_ANIMATIONS.idleClip,
+      );
+      if (idleIndex < 0) return;
+
+      activeIndex = idleIndex;
       playAction(activeIndex, previousAction);
     };
 

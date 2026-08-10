@@ -1,4 +1,4 @@
-export const LOW_POLY_NK_MODEL_URL = "/3D/LowPolyNK_4.glb";
+export const LOW_POLY_NK_MODEL_URL = "/3D/LowPolyNK.glb";
 export const LOW_POLY_NK_FACE_MATERIAL = "m_face";
 
 export const LOW_POLY_NK_FACE_OFFSETS = {
@@ -6,6 +6,7 @@ export const LOW_POLY_NK_FACE_OFFSETS = {
   face2: [0, 0.5],
   face3: [0.5, 0.5],
   neutral: [0, 0],
+  wink: [0, 0.75],
 } as const;
 
 export type LowPolyNkFace = keyof typeof LOW_POLY_NK_FACE_OFFSETS;
@@ -13,18 +14,30 @@ export type LowPolyNkFace = keyof typeof LOW_POLY_NK_FACE_OFFSETS;
 export const LOW_POLY_NK_ANIMATIONS = {
   crossFadeSeconds: 0.35,
   fps: 24,
-  idleBeforeLookingSeconds: 3,
-  sequence: ["IDLE", "LOOKING"],
+  idleClip: "IDLE",
+  idleBeforeRandomSeconds: 3,
+  randomClips: ["GREETING", "LOOKING", "STRETCHING"],
 } as const;
 
 export type LowPolyNkAnimation =
-  (typeof LOW_POLY_NK_ANIMATIONS.sequence)[number];
+  | typeof LOW_POLY_NK_ANIMATIONS.idleClip
+  | (typeof LOW_POLY_NK_ANIMATIONS.randomClips)[number];
 
-const IDLE_BLINK_FRAME_RANGES = [[45, 49]] as const;
+export type LowPolyNkRandomAnimation =
+  (typeof LOW_POLY_NK_ANIMATIONS.randomClips)[number];
 
-function getIdleFace(frame: number): LowPolyNkFace {
-  const isBlinking = IDLE_BLINK_FRAME_RANGES.some(
-    ([start, end]) => frame >= start && frame < end,
+const NATURAL_BLINK = {
+  frameCount: 100,
+  ranges: [
+    [45, 49],
+    [88, 92],
+  ],
+} as const;
+
+function getNaturalBlinkFace(frame: number): LowPolyNkFace {
+  const cycleFrame = frame % NATURAL_BLINK.frameCount;
+  const isBlinking = NATURAL_BLINK.ranges.some(
+    ([start, end]) => cycleFrame >= start && cycleFrame < end,
   );
 
   return isBlinking ? "blink" : "neutral";
@@ -44,13 +57,24 @@ function getLookingFace(frame: number): LowPolyNkFace {
   return "neutral";
 }
 
+function getGreetingFace(frame: number): LowPolyNkFace {
+  if ((frame >= 45 && frame < 49) || (frame >= 88 && frame < 92)) {
+    return "blink";
+  }
+
+  if (frame >= 70 && frame < 88) return "wink";
+
+  return "neutral";
+}
+
 export function getLowPolyNkFace(
   animation: LowPolyNkAnimation,
   time: number,
 ): LowPolyNkFace {
   const frame = time * LOW_POLY_NK_ANIMATIONS.fps;
 
+  if (animation === "GREETING") return getGreetingFace(frame);
   if (animation === "LOOKING") return getLookingFace(frame);
 
-  return getIdleFace(frame);
+  return getNaturalBlinkFace(frame);
 }
