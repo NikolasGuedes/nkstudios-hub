@@ -410,7 +410,7 @@ export default function SkillsViewport() {
         <div className="absolute bottom-5 left-5 z-30 w-[calc(100%-2.5rem)] max-w-[42rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">
             <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--Branco)]">
-              {__("Model references")}
+              {__("Model reference photos")}
             </p>
             <button
               aria-label={__("Hide details")}
@@ -424,7 +424,7 @@ export default function SkillsViewport() {
 
           <p className="mt-2 text-sm leading-6 text-[var(--Branco)]">
             {__(
-              "Reference images used to create the LowPolyNK test model.",
+              "Photos of me that I used as references to create the 3D model.",
             )}
           </p>
 
