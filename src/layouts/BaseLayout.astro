@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { __ } from '../lib/i18n';
+import Header from '../components/Header.astro';
 
 interface Props {
   title?: string;
@@ -66,7 +67,7 @@ const {
     </script>
     <title>{title}</title>
   </head>
-  <body class="bg-[var(--page-bg)] text-[var(--text-primary)] antialiased">
+  <body class="bg-[var(--page-bg)] text-[var(--Branco)] antialiased">
     <div
       id="initial-loader"
       class="initial-loader"
@@ -87,6 +88,7 @@ const {
     </div>
 
     <div data-page-shell class="page-shell">
+      <Header />
       <slot />
     </div>
 
@@ -134,7 +136,9 @@ const {
         let readyToReveal = false;
         let loaderDismissed = false;
         let animationFrameId = 0;
+        let maximumWaitTimeoutId = 0;
         const minimumLoaderTime = 450;
+        const maximumLoaderTime = 5000;
         const startedAt = window.performance.now();
 
         const updateTargetProgress = () => {
@@ -166,6 +170,7 @@ const {
           if (loaderDismissed) return;
 
           loaderDismissed = true;
+          window.clearTimeout(maximumWaitTimeoutId);
           displayedProgress = 100;
           progressValue.textContent = '100';
           loader.dataset.complete = 'true';
@@ -214,9 +219,11 @@ const {
           completeTask('fonts-ready');
         }
 
-        const images = Array.from(document.images).filter(
-          (image) => !image.hasAttribute('data-loading-ignore'),
-        );
+        const images = Array.from(document.images).filter((image) => {
+          if (image.hasAttribute('data-loading-ignore')) return false;
+
+          return image.loading !== 'lazy';
+        });
 
         for (const [index, image] of images.entries()) {
           const taskId = `image-${index}`;
@@ -256,7 +263,14 @@ const {
           completeTask('viewport-ready');
         }
 
+        maximumWaitTimeoutId = window.setTimeout(() => {
+          for (const [taskId, isComplete] of taskState.entries()) {
+            if (!isComplete) completeTask(taskId);
+          }
+        }, maximumLoaderTime);
+
         window.addEventListener('pagehide', () => {
+          window.clearTimeout(maximumWaitTimeoutId);
           window.cancelAnimationFrame(animationFrameId);
         });
 

@@ -174,12 +174,13 @@ export function translateDocument(locale = getLocale()) {
   }
 
   const attributeNodes = document.querySelectorAll<HTMLElement>(
-    '[data-i18n-attr-aria-label], [data-i18n-attr-content]',
+    '[data-i18n-attr-aria-label], [data-i18n-attr-content], [data-i18n-attr-placeholder]',
   );
 
   for (const element of attributeNodes) {
     const ariaLabelKey = element.dataset.i18nAttrAriaLabel;
     const contentKey = element.dataset.i18nAttrContent;
+    const placeholderKey = element.dataset.i18nAttrPlaceholder;
 
     if (ariaLabelKey) {
       element.setAttribute('aria-label', translate(ariaLabelKey, locale));
@@ -187,6 +188,10 @@ export function translateDocument(locale = getLocale()) {
 
     if (contentKey) {
       element.setAttribute('content', translate(contentKey, locale));
+    }
+
+    if (placeholderKey) {
+      element.setAttribute('placeholder', translate(placeholderKey, locale));
     }
   }
 

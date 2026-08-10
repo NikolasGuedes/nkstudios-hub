@@ -1,87 +1,320 @@
-import { Float, Grid, OrbitControls, PerspectiveCamera } from '@react-three/drei';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react';
-import { Eye, Grip, MousePointer2, X } from 'lucide-react';
-import { useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
-import { __, useLocale } from '../lib/i18n';
-import { CursorFollower } from './ui/cursor-follower';
-import type { Mesh } from 'three';
+import {
+  Grid,
+  OrbitControls,
+  PerspectiveCamera,
+  useAnimations,
+  useGLTF,
+} from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Eye, Grip, MousePointer2, X } from "lucide-react";
+import { useReducedMotion } from "motion/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  getLowPolyNkFace,
+  LOW_POLY_NK_ANIMATIONS,
+  LOW_POLY_NK_FACE_MATERIAL,
+  LOW_POLY_NK_FACE_OFFSETS,
+  LOW_POLY_NK_MODEL_URL,
+  type LowPolyNkAnimation,
+  type LowPolyNkFace,
+  type LowPolyNkRandomAnimation,
+} from "../config/low-poly-nk";
+import { __, useLocale } from "../lib/i18n";
+import { CursorFollower } from "./ui/cursor-follower";
+import ShaderBackground from "./ShaderBackground";
+import {
+  LoopOnce,
+  Mesh,
+  MathUtils,
+  RepeatWrapping,
+  type AnimationAction,
+  type Group,
+  type MeshStandardMaterial,
+  type Object3D,
+  type PerspectiveCamera as ThreePerspectiveCamera,
+  type Texture,
+} from "three";
+import { clone } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 const SCENE_COLORS = {
-  directional: '#ffffff',
-  emissive: '#8cc8ff',
-  grid: '#d7e8ff',
-  mesh: '#ffffff',
-  point: '#006fff',
-  shaderBlue: '#006FFF',
-  shaderBlueSoft: '#0E70EB',
-  shaderBlueStrong: '#005eeb',
+  directional: "#ffffff",
+  emissive: "#8cc8ff",
+  grid: "#d7e8ff",
+  point: "#006fff",
 } as const;
 
+const CAMERA_FOV = 38;
+const CAMERA_INTERACTION_FOV = 28;
 const CAMERA_POSITION: [number, number, number] = [0, 2.45, 8.4];
-const MODEL_POSITION: [number, number, number] = [0, -0.08, 0];
-const ORBIT_TARGET: [number, number, number] = MODEL_POSITION;
-const VIEWPORT_READY_EVENT = 'nkstudios:viewport-ready';
+const GROUND_Y = -1.95;
+const MODEL_SCALE = 0.72;
+const MODEL_POSITION: [number, number, number] = [0, -2.005, 0];
+const MODEL_ROTATION: [number, number, number] = [0, 0, 0];
+const ORBIT_TARGET: [number, number, number] = [0, -0.2, 0];
+const VIEWPORT_READY_EVENT = "nkstudios:viewport-ready";
 
-function PlaceholderModel({ reduceMotion }: { reduceMotion: boolean | null }) {
-  const meshRef = useRef<Mesh>(null);
+function LowPolyModel() {
+  const groupRef = useRef<Group>(null);
+  const activeFaceRef = useRef<LowPolyNkFace | null>(null);
+  const activeAnimationRef = useRef<LowPolyNkAnimation>(
+    LOW_POLY_NK_ANIMATIONS.idleClip,
+  );
+  const { animations, scene } = useGLTF(LOW_POLY_NK_MODEL_URL);
+  const { faceTexture, model } = useMemo<{
+    faceTexture: Texture | null;
+    model: Object3D;
+  }>(() => {
+    const clonedModel = clone(scene);
+    let animatedFaceTexture: Texture | null = null;
 
-  useFrame((state, delta) => {
-    if (!meshRef.current) return;
+    clonedModel.traverse((child) => {
+      if (!(child instanceof Mesh)) return;
 
-    meshRef.current.rotation.y += delta * 0.42;
-    meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
-    meshRef.current.position.y = MODEL_POSITION[1] + Math.sin(state.clock.elapsedTime * 0.9) * 0.04;
+      const sourceMaterials = Array.isArray(child.material)
+        ? child.material
+        : [child.material];
+      const clonedMaterials = sourceMaterials.map((sourceMaterial) => {
+        if (sourceMaterial.name !== LOW_POLY_NK_FACE_MATERIAL) {
+          return sourceMaterial;
+        }
+
+        const faceMaterial = sourceMaterial.clone() as MeshStandardMaterial;
+        const sourceTexture = faceMaterial.emissiveMap ?? faceMaterial.map;
+
+        if (sourceTexture) {
+          animatedFaceTexture = sourceTexture.clone();
+          animatedFaceTexture.wrapS = RepeatWrapping;
+          animatedFaceTexture.wrapT = RepeatWrapping;
+          animatedFaceTexture.needsUpdate = true;
+
+          if (faceMaterial.emissiveMap === sourceTexture) {
+            faceMaterial.emissiveMap = animatedFaceTexture;
+          }
+
+          if (faceMaterial.map === sourceTexture) {
+            faceMaterial.map = animatedFaceTexture;
+          }
+        }
+
+        return faceMaterial;
+      });
+
+      child.material = Array.isArray(child.material)
+        ? clonedMaterials
+        : clonedMaterials[0];
+    });
+
+    return { faceTexture: animatedFaceTexture, model: clonedModel };
+  }, [scene]);
+  const { actions, mixer } = useAnimations(animations, groupRef);
+
+  useEffect(() => {
+    const clipNames: readonly LowPolyNkAnimation[] = [
+      LOW_POLY_NK_ANIMATIONS.idleClip,
+      ...LOW_POLY_NK_ANIMATIONS.randomClips,
+    ];
+    const sequence = clipNames
+      .map((name) => ({ action: actions[name], name }))
+      .filter(
+        (entry): entry is { action: AnimationAction; name: LowPolyNkAnimation } =>
+          Boolean(entry.action),
+    );
+    if (sequence.length === 0) return;
+
+    let activeIndex = 0;
+    let idleTimerId: number | null = null;
+    let lastRandomAnimation: LowPolyNkRandomAnimation | null = null;
+
+    const playAction = (index: number, previousAction?: AnimationAction) => {
+      const next = sequence[index];
+      if (!next) return;
+
+      if (idleTimerId !== null) {
+        window.clearTimeout(idleTimerId);
+        idleTimerId = null;
+      }
+
+      next.action.reset().setLoop(LoopOnce, 1);
+      next.action.clampWhenFinished = true;
+      next.action.play();
+      activeAnimationRef.current = next.name;
+      activeFaceRef.current = null;
+
+      if (previousAction) {
+        previousAction.crossFadeTo(
+          next.action,
+          LOW_POLY_NK_ANIMATIONS.crossFadeSeconds,
+          true,
+        );
+      } else {
+        next.action.fadeIn(LOW_POLY_NK_ANIMATIONS.crossFadeSeconds);
+      }
+
+      if (next.name === LOW_POLY_NK_ANIMATIONS.idleClip) {
+        idleTimerId = window.setTimeout(() => {
+          const availableRandomClips = sequence.filter(
+            (
+              entry,
+            ): entry is {
+              action: AnimationAction;
+              name: LowPolyNkRandomAnimation;
+            } =>
+              entry.name !== LOW_POLY_NK_ANIMATIONS.idleClip &&
+              entry.name !== lastRandomAnimation,
+          );
+          const randomPool =
+            availableRandomClips.length > 0
+              ? availableRandomClips
+              : sequence.filter(
+                  (
+                    entry,
+                  ): entry is {
+                    action: AnimationAction;
+                    name: LowPolyNkRandomAnimation;
+                  } => entry.name !== LOW_POLY_NK_ANIMATIONS.idleClip,
+                );
+          if (randomPool.length === 0 || activeIndex !== index) return;
+
+          const selected =
+            randomPool[Math.floor(Math.random() * randomPool.length)];
+          if (!selected) return;
+
+          const selectedIndex = sequence.findIndex(
+            ({ name }) => name === selected.name,
+          );
+          if (selectedIndex < 0) return;
+
+          const idleAction = sequence[activeIndex]?.action;
+          lastRandomAnimation = selected.name;
+          activeIndex = selectedIndex;
+          playAction(activeIndex, idleAction);
+        }, LOW_POLY_NK_ANIMATIONS.idleBeforeRandomSeconds * 1000);
+      }
+    };
+
+    const handleFinished = (event: { action: AnimationAction }) => {
+      if (event.action !== sequence[activeIndex]?.action) return;
+
+      const previousAction = event.action;
+      const idleIndex = sequence.findIndex(
+        ({ name }) => name === LOW_POLY_NK_ANIMATIONS.idleClip,
+      );
+      if (idleIndex < 0) return;
+
+      activeIndex = idleIndex;
+      playAction(activeIndex, previousAction);
+    };
+
+    playAction(activeIndex);
+    mixer.addEventListener("finished", handleFinished);
+
+    return () => {
+      if (idleTimerId !== null) window.clearTimeout(idleTimerId);
+      mixer.removeEventListener("finished", handleFinished);
+      sequence.forEach(({ action }) => action.stop());
+    };
+  }, [actions, mixer]);
+
+  useFrame(() => {
+    if (!faceTexture) return;
+
+    const activeAnimation = activeAnimationRef.current;
+    const animationTime = actions[activeAnimation]?.time ?? 0;
+    const nextFace = getLowPolyNkFace(activeAnimation, animationTime);
+    if (activeFaceRef.current === nextFace) return;
+
+    activeFaceRef.current = nextFace;
+    const [offsetX, offsetY] = LOW_POLY_NK_FACE_OFFSETS[nextFace];
+    faceTexture.offset.set(offsetX, offsetY);
   });
 
   return (
-    <Float
-      floatIntensity={reduceMotion ? 0.2 : 0.9}
-      rotationIntensity={reduceMotion ? 0.15 : 0.45}
-      speed={reduceMotion ? 0.4 : 1.2}
+    <group
+      ref={groupRef}
+      position={MODEL_POSITION}
+      rotation={MODEL_ROTATION}
+      scale={MODEL_SCALE}
     >
-      <mesh ref={meshRef} castShadow position={MODEL_POSITION}>
-        <torusKnotGeometry args={[0.58, 0.2, 220, 32, 2, 3]} />
-        <meshPhysicalMaterial
-          clearcoat={1}
-          clearcoatRoughness={0.12}
-          color={SCENE_COLORS.mesh}
-          emissive={SCENE_COLORS.emissive}
-          emissiveIntensity={0.32}
-          metalness={0.22}
-          roughness={0.1}
-        />
-      </mesh>
-    </Float>
+      <primitive object={model} />
+    </group>
   );
 }
 
-function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
+function InteractiveOrbitControls() {
+  const isInteractingRef = useRef(false);
+  const camera = useThree(
+    (state) => state.camera,
+  ) as ThreePerspectiveCamera;
+
+  useFrame((_, delta) => {
+    const targetFov = isInteractingRef.current
+      ? CAMERA_INTERACTION_FOV
+      : CAMERA_FOV;
+    const nextFov = MathUtils.damp(camera.fov, targetFov, 8, delta);
+
+    if (Math.abs(camera.fov - nextFov) < 0.001) return;
+
+    camera.fov = nextFov;
+    camera.updateProjectionMatrix();
+  });
+
+  return (
+    <OrbitControls
+      enableDamping
+      dampingFactor={0.08}
+      enablePan={false}
+      enableZoom={false}
+      maxPolarAngle={1.6}
+      minPolarAngle={1.05}
+      onEnd={() => {
+        isInteractingRef.current = false;
+      }}
+      onStart={() => {
+        isInteractingRef.current = true;
+      }}
+      rotateSpeed={0.7}
+      target={ORBIT_TARGET}
+    />
+  );
+}
+
+function Scene3D({
+  isVisible,
+}: {
+  isVisible: boolean;
+}) {
   return (
     <Canvas
       className="absolute inset-0 h-full w-full"
       dpr={[1, 1.5]}
-      gl={{ alpha: true, antialias: true, powerPreference: 'high-performance' }}
+      frameloop={isVisible ? "always" : "never"}
+      gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
       shadows={false}
     >
-      <PerspectiveCamera fov={38} makeDefault position={CAMERA_POSITION} />
-      <OrbitControls
-        enableDamping
-        dampingFactor={0.08}
-        enablePan={false}
-        enableZoom={false}
-        maxPolarAngle={1.6}
-        minPolarAngle={1.05}
-        rotateSpeed={0.7}
-        target={ORBIT_TARGET}
+      <PerspectiveCamera
+        fov={CAMERA_FOV}
+        makeDefault
+        position={CAMERA_POSITION}
       />
+      <InteractiveOrbitControls />
       <ambientLight intensity={1.25} />
-      <directionalLight color={SCENE_COLORS.directional} intensity={1.55} position={[2, 4, 3]} />
-      <pointLight color={SCENE_COLORS.emissive} intensity={11} position={[-3, 1.5, 2.5]} />
-      <pointLight color={SCENE_COLORS.point} intensity={8} position={[3, 0.8, 1.5]} />
+      <directionalLight
+        color={SCENE_COLORS.directional}
+        intensity={1.55}
+        position={[2, 4, 3]}
+      />
+      <pointLight
+        color={SCENE_COLORS.emissive}
+        intensity={11}
+        position={[-3, 1.5, 2.5]}
+      />
+      <pointLight
+        color={SCENE_COLORS.point}
+        intensity={8}
+        position={[3, 0.8, 1.5]}
+      />
 
-      <group position={[0, -1.95, -10.5]}>
+      <group position={[0, GROUND_Y, -10.5]}>
         <Grid
           args={[80, 44]}
           cellColor={SCENE_COLORS.grid}
@@ -98,7 +331,7 @@ function Scene3D({ reduceMotion }: { reduceMotion: boolean | null }) {
         />
       </group>
 
-      <PlaceholderModel reduceMotion={reduceMotion} />
+      <LowPolyModel />
     </Canvas>
   );
 }
@@ -108,7 +341,25 @@ export default function SkillsViewport() {
 
   const reduceMotion = useReducedMotion();
   const [detailsVisible, setDetailsVisible] = useState(false);
+  const [isViewportVisible, setIsViewportVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node || !window.IntersectionObserver) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry) setIsViewportVisible(entry.isIntersecting);
+      },
+      { rootMargin: "80px 0px" },
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,81 +391,30 @@ export default function SkillsViewport() {
     <section
       data-skills-viewport
       ref={sectionRef}
-      className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--skill-blue)]"
+      className="relative h-full cursor-none overflow-hidden rounded-[2.25rem] bg-[var(--Azul)]"
     >
-      <div className="absolute inset-0">
-        <ShaderGradientCanvas
-          className="h-full w-full"
-          pixelDensity={1}
-          pointerEvents="none"
-          style={{ width: '100%', height: '100%' }}
-        >
-          <ShaderGradient
-            animate={reduceMotion ? 'off' : 'on'}
-            axesHelper="off"
-            bgColor1="var(--page-bg)"
-            bgColor2="var(--page-bg)"
-            brightness={1.2}
-            cAzimuthAngle={180}
-            cDistance={3.6}
-            cPolarAngle={90}
-            cameraZoom={1}
-            color1={SCENE_COLORS.shaderBlue}
-            color2={SCENE_COLORS.shaderBlueStrong}
-            color3={SCENE_COLORS.shaderBlueSoft}
-            control="props"
-            destination="onCanvas"
-            embedMode="off"
-            envPreset="city"
-            format="gif"
-            fov={45}
-            frameRate={10}
-            gizmoHelper="hide"
-            grain="off"
-            lightType="3d"
-            positionX={-1.4}
-            positionY={0}
-            positionZ={0}
-            range="disabled"
-            rangeEnd={40}
-            rangeStart={0}
-            reflection={0.1}
-            rotationX={0}
-            rotationY={10}
-            rotationZ={50}
-            shader="defaults"
-            type="waterPlane"
-            uAmplitude={1}
-            uDensity={1.3}
-            uFrequency={5.5}
-            uSpeed={0.1}
-            uStrength={4.8}
-            uTime={0}
-            wireframe={false}
-          />
-        </ShaderGradientCanvas>
-      </div>
+      <ShaderBackground
+        isVisible={isViewportVisible}
+        reduceMotion={reduceMotion}
+      />
 
-      <div className="pointer-events-none absolute inset-0 bg-[var(--surface-blur)] backdrop-blur-[22px]" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,rgba(255,255,255,0.012)_22%,rgba(18,90,255,0.035)_58%,rgba(8,56,201,0.1)_100%)]" />
-
-      <Scene3D reduceMotion={reduceMotion} />
+      <Scene3D isVisible={isViewportVisible} />
       <CursorFollower
         containerRef={sectionRef}
         defaultIcon={<Grip size={18} strokeWidth={2.1} />}
         hoverIcon={<MousePointer2 size={16} strokeWidth={2.2} />}
-        interactiveSelector='button, [data-cursor-hover]'
+        interactiveSelector="button, [data-cursor-hover]"
       />
 
       {detailsVisible ? (
-        <div className="absolute bottom-5 left-5 z-30 max-w-[19rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
+        <div className="absolute bottom-5 left-5 z-30 w-[calc(100%-2.5rem)] max-w-[42rem] rounded-[1.75rem] border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.1),rgba(255,255,255,0.04))] px-5 py-4 shadow-[var(--shadow-panel-lg)] backdrop-blur-md md:bottom-8 md:left-8 md:px-6 md:py-5">
           <div className="flex items-start justify-between gap-4">
-            <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--text-primary)]">
-              {__('Active 3D scene')}
+            <p className="pt-2 text-[0.68rem] uppercase tracking-[0.22em] text-[var(--Branco)]">
+              {__("Model reference photos")}
             </p>
             <button
-              aria-label={__('Hide details')}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[var(--surface-softer)] text-[var(--text-primary)] transition hover:bg-[var(--surface-soft)]"
+              aria-label={__("Hide details")}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[var(--surface-softer)] text-[var(--Branco)] transition hover:bg-[var(--surface-soft)]"
               onClick={() => setDetailsVisible(false)}
               type="button"
             >
@@ -222,23 +422,48 @@ export default function SkillsViewport() {
             </button>
           </div>
 
-          <p className="mt-2 text-sm leading-6 text-[var(--text-primary)]">
+          <p className="mt-2 text-sm leading-6 text-[var(--Branco)]">
             {__(
-              'The central placeholder will be replaced by your final model. For now, the focus is structuring the viewport, grid, camera, and background.',
+              "Photos of me that I used as references to create the 3D model.",
             )}
           </p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <figure className="overflow-hidden rounded-2xl border border-[color:var(--line-mid)] bg-black/15 p-2">
+              <img
+                alt={__("Front reference")}
+                className="h-[clamp(9rem,28vh,15rem)] w-full object-contain"
+                src="/3D/referencia_01.JPG"
+              />
+              <figcaption className="px-1 pb-1 pt-2 text-center text-[0.62rem] uppercase tracking-[0.16em] text-[var(--Branco)]">
+                {__("Front reference")}
+              </figcaption>
+            </figure>
+
+            <figure className="overflow-hidden rounded-2xl border border-[color:var(--line-mid)] bg-black/15 p-2">
+              <img
+                alt={__("Side reference")}
+                className="h-[clamp(9rem,28vh,15rem)] w-full object-contain"
+                src="/3D/referencia_02.JPG"
+              />
+              <figcaption className="px-1 pb-1 pt-2 text-center text-[0.62rem] uppercase tracking-[0.16em] text-[var(--Branco)]">
+                {__("Side reference")}
+              </figcaption>
+            </figure>
+          </div>
         </div>
       ) : (
         <button
-          aria-label={__('Show details')}
-          className="absolute bottom-5 left-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] text-[var(--text-primary)] shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:bg-[var(--surface-soft)] md:bottom-8 md:left-8"
+          aria-label={__("Show details")}
+          className="absolute bottom-5 left-5 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--line-mid)] bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] text-[var(--Branco)] shadow-[var(--shadow-panel)] backdrop-blur-md transition hover:bg-[var(--surface-soft)] md:bottom-8 md:left-8"
           onClick={() => setDetailsVisible(true)}
           type="button"
         >
           <Eye size={18} strokeWidth={2.2} />
         </button>
       )}
-     
     </section>
   );
 }
+
+useGLTF.preload(LOW_POLY_NK_MODEL_URL);

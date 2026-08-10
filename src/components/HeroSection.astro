@@ -1,34 +1,33 @@
 ---
-import Header from './Header.astro';
 import SkillsViewport from './SkillsViewport';
 import { __ } from '../lib/i18n';
 ---
 
-<section id="top" class="relative isolate h-dvh overflow-hidden bg-[var(--page-bg)] text-[var(--text-primary)]">
-  <Header />
-
+<section id="top" class="relative isolate h-dvh overflow-hidden bg-[var(--page-bg)] text-[var(--Branco)]">
   <div class="h-dvh overflow-hidden px-3 pb-3 pt-[calc(var(--header-height)+0.65rem)] sm:px-4 sm:pb-4 lg:px-6 lg:pb-5">
-    <div class="mx-auto flex h-[calc(100dvh-var(--header-height)-0.65rem)] w-full max-w-[112rem] flex-col overflow-hidden">
-      <div class="h-[min(70dvh,41rem)] shrink-0 md:h-[min(67dvh,46rem)] lg:h-[min(57dvh,40rem)]">
+    <div class="hero-content-shell mx-auto flex h-[calc(100dvh-var(--header-height)-0.65rem)] w-full max-w-[112rem] flex-col overflow-hidden">
+      <div class="hero-skills-viewport h-[min(70dvh,41rem)] shrink-0 md:h-[min(67dvh,46rem)] lg:h-[min(57dvh,40rem)]">
         <div data-skills-viewport-host class="h-full">
           <SkillsViewport client:only="react" />
         </div>
       </div>
 
       <div class="mt-1 flex min-h-0 flex-1 flex-col md:mt-2 lg:mt-3">
-        <div class="flex items-end justify-between gap-4 pb-2 text-[var(--text-primary)] md:gap-6 mt-5 sm:mt-0">
-          <div class="text-[clamp(0.68rem,0.9vw,1rem)] uppercase leading-[1.35] tracking-[0.02em] sm:tracking-[0.4em] text-[var(--text-primary)] md:text-[clamp(0.78rem,0.95vw,1rem)] md:leading-[1.45]">
+        <div class="flex items-end justify-between gap-4 pb-2 text-[var(--Branco)] md:gap-6 mt-5 sm:mt-0">
+          <div class="text-[clamp(0.68rem,0.9vw,1rem)] uppercase leading-[1.35] tracking-[0.02em] sm:tracking-[0.4em] text-[var(--Branco)] md:text-[clamp(0.78rem,0.95vw,1rem)] md:leading-[1.45]">
             <p data-i18n-key="Sao Paulo, Brazil">{__('Sao Paulo, Brazil')}</p>
             <p class="flex items-center gap-1.5">
               <span data-i18n-key="Open to work">{__('Open to work')}</span>
               <span
                 aria-hidden="true"
-                class="inline-block h-[0.8em] w-[0.8em] rounded-full bg-current"
-              />
+                class="open-to-work-indicator relative inline-flex h-[0.8em] w-[0.8em] shrink-0 rounded-full bg-current"
+              >
+                <span class="absolute inset-0 rounded-full bg-current"></span>
+              </span>
             </p>
           </div>
 
-          <div class="text-right text-[clamp(0.68rem,0.9vw,1rem)] uppercase leading-[1.35] tracking-[0.02em] text-[var(--text-primary)] md:text-[clamp(0.78rem,0.95vw,1rem)] sm:tracking-[0.4em]">
+          <div class="text-right text-[clamp(0.68rem,0.9vw,1rem)] uppercase leading-[1.35] tracking-[0.02em] text-[var(--Branco)] md:text-[clamp(0.78rem,0.95vw,1rem)] sm:tracking-[0.4em]">
             <p>Nikolas Guedes da Silva</p>
             <p data-i18n-key="28 years old">{__('28 years old')}</p>
           </div>
@@ -38,10 +37,65 @@ import { __ } from '../lib/i18n';
           <img
             src="/images/NK_STUDIOS.png"
             alt="NK Studios"
-            class="block h-auto w-full object-contain object-left-top lg:max-h-full lg:object-left-bottom"
+            class="hero-wordmark block h-auto w-full object-contain object-left-top lg:max-h-full lg:object-left-bottom"
           />
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<style>
+  @media (min-width: 2560px) and (min-aspect-ratio: 2 / 1) {
+    .hero-content-shell {
+      max-width: none;
+    }
+
+    .hero-skills-viewport {
+      height: min(64dvh, 52rem);
+    }
+
+    .hero-wordmark {
+      object-position: center bottom;
+    }
+  }
+
+  .open-to-work-indicator {
+    animation: open-to-work-dot 1.8s ease-in-out infinite;
+  }
+
+  .open-to-work-indicator > span {
+    animation: open-to-work-ring 1.8s ease-out infinite;
+  }
+
+  @keyframes open-to-work-dot {
+    0%,
+    100% {
+      transform: scale(0.9);
+    }
+
+    50% {
+      transform: scale(1.08);
+    }
+  }
+
+  @keyframes open-to-work-ring {
+    0% {
+      opacity: 0.7;
+      transform: scale(1);
+    }
+
+    75%,
+    100% {
+      opacity: 0;
+      transform: scale(2.35);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .open-to-work-indicator,
+    .open-to-work-indicator > span {
+      animation: none;
+    }
+  }
+</style>
