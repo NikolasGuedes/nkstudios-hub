@@ -6,12 +6,19 @@ import Header from '../components/Header.astro';
 interface Props {
   title?: string;
   description?: string;
+  keywords?: string;
+  image?: string;
 }
 
 const {
-  title = 'NK Studios Hub',
-  description = 'Astro base with React for creating fast, interactive experiences.',
+  title = 'NK Studios Hub | Nikolas Guedes — Desenvolvedor Full-Stack',
+  description = 'Nikolas Guedes (NK Studios) — desenvolvedor full-stack criando sites, aplicações web e jogos rápidos, interativos e sob medida com Astro, React, Three.js e Unity. Disponível para projetos no Brasil e internacionais.',
+  keywords = 'Nikolas Guedes, NK Studios, desenvolvedor full-stack, desenvolvedor web freelancer, criação de sites, aplicações web React, Astro developer, portfólio desenvolvedor, front-end e back-end, three.js developer, desenvolvedor de jogos, game developer, criação de jogos, desenvolvimento de games, unity developer, indie game dev',
+  image = '/images/meta_imagem.png',
 } = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const socialImageUrl = new URL(image, Astro.site);
 ---
 
 <!doctype html>
@@ -24,6 +31,52 @@ const {
       content={__(description)}
       data-i18n-attr-content={description}
     />
+    <meta name="keywords" content={keywords} />
+    <meta name="author" content="Nikolas Guedes" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="NK Studios Hub" />
+    <meta property="og:title" content={title} />
+    <meta
+      property="og:description"
+      content={__(description)}
+      data-i18n-attr-content={description}
+    />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="es_ES" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta
+      name="twitter:description"
+      content={__(description)}
+      data-i18n-attr-content={description}
+    />
+    <meta name="twitter:image" content={socialImageUrl} />
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Person',
+      name: 'Nikolas Guedes',
+      alternateName: 'NK Studios',
+      url: 'https://nkstudios.dev',
+      jobTitle: 'Desenvolvedor Full-Stack',
+      description,
+      image: socialImageUrl.toString(),
+      sameAs: [
+        'https://www.linkedin.com/in/nikolas-guedes-da-silva-6497541a1/',
+        'https://github.com/NikolasGuedes',
+        'https://www.instagram.com/guedes_nk/',
+      ],
+    })} />
+
     <link rel="icon" type="image/svg+xml" href="/NK_STUDIOS_ICON.svg" />
     <style>
       html[data-i18n-ready='false'] [data-page-shell] {

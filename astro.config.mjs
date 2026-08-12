@@ -2,10 +2,12 @@ import node from '@astrojs/node';
 import { defineConfig, envField } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
+import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
+  site: 'https://nkstudios.dev',
   adapter: node({ mode: 'standalone' }),
-  integrations: [react()],
+  integrations: [react(), sitemap()],
   env: {
     schema: {
       SMTP_HOST: envField.string({
