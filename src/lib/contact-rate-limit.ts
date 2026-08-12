@@ -46,12 +46,11 @@ export function checkContactRateLimit(key: string, now = Date.now()): RateLimitR
 }
 
 export function getContactClientKey(request: Request): string {
-  const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
-  const address =
-    request.headers.get('cf-connecting-ip')?.trim() ||
-    forwardedFor ||
-    request.headers.get('x-real-ip')?.trim() ||
-    'unknown';
+  // Only trust X-Real-IP: nginx overwrites it with $remote_addr, so clients
+  // cannot forge it. CF-Connecting-IP and X-Forwarded-For are client-supplied
+  // and would let an attacker rotate the rate-limit key on every request
+  // since this deployment sits behind plain nginx, not Cloudflare.
+  const address = request.headers.get('x-real-ip')?.trim() || 'unknown';
 
   return address.slice(0, 100);
 }
