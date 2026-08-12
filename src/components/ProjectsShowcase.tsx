@@ -160,10 +160,10 @@ export default function ProjectsShowcase() {
   return (
     <section
       id="projetos"
-      className="relative isolate min-h-dvh overflow-hidden transition-colors duration-500 lg:h-dvh lg:min-h-0 lg:pt-[var(--header-height)]"
+      className="relative isolate min-h-svh overflow-hidden transition-colors duration-500 lg:h-svh lg:min-h-0 lg:pt-[var(--header-height)]"
       style={{ backgroundColor: activeProject.COLOR, color: textColor }}
     >
-      <div className="grid min-h-dvh lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,2.1fr)_minmax(23rem,0.9fr)]">
+      <div className="grid min-h-svh lg:h-full lg:min-h-0 lg:grid-cols-[minmax(0,2.1fr)_minmax(23rem,0.9fr)]">
         <div className="relative min-h-[62svh] overflow-hidden bg-black lg:h-full lg:min-h-0">
           {mediaMode === 'video' && activeProject.VIDEO ? (
             <video

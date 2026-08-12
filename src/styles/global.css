@@ -116,7 +116,7 @@ html[data-page-loading='true'] body {
 }
 
 .page-shell {
-  min-height: 100dvh;
+  min-height: 100svh;
   opacity: 1;
   transform: none;
   transition: opacity 0.6s ease, transform 0.6s ease;

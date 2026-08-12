@@ -1,7 +1,7 @@
 .about-kpi-loop {
   position: relative;
   overflow: hidden;
-  height: clamp(26rem, 58dvh, 42rem);
+  height: clamp(26rem, 58svh, 42rem);
 }
 
 .about-kpi-loop .logoloop {
